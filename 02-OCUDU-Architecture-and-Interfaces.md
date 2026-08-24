@@ -1,4 +1,7 @@
 # 02. OCUDU Architecture and Interfaces
+## 本章目標
+
+本章的目標是進一步理解 OCUDU 的內部架構，釐清 **CU-CP、CU-UP、DU-high、DU-low 與 RU** 各自負責的功能，並建立 **E1、F1、FAPI 與 Open Fronthaul** 等介面在整個 5G RAN 中的位置與關係。
 
 ## 2.1 Architecture Overview
 
