@@ -2,6 +2,13 @@
 ## 本章目標
 
 本章的目標是理解 **OAI Layer 2 與 NVIDIA Aerial Layer 1 的整合架構**，釐清 OAI、FAPI、nvIPC、Aerial L2 Adapter 與 cuPHY 各自扮演的角色，並理解一筆資料如何從 OAI MAC 經過 Aerial L1 最後送到 O-RU。
+
+## 學習紀錄
+
+- **投入時間：** 約 2.5 小時
+- **OAI Branch / Tag：** `develop`
+- **主要閱讀內容：** OAI Aerial FAPI Split Tutorial、NVIDIA Aerial L1、L2 Adapter、cuPHY Documentation
+- **本次重點：** 理解 OAI L2 與 NVIDIA Aerial L1 的整合方式，釐清 FAPI、nvIPC、Aerial L2 Adapter、cuPHY Driver 與 cuPHY 的角色，以及 OAI Scheduler 到 GPU PHY 的資料流程。
 ## 5.1 Overview
 
 前一章已經整理：
