@@ -3,6 +3,11 @@
 
 本章的目標是進一步理解 OCUDU 的內部架構，釐清 **CU-CP、CU-UP、DU-high、DU-low 與 RU** 各自負責的功能，並建立 **E1、F1、FAPI 與 Open Fronthaul** 等介面在整個 5G RAN 中的位置與關係。
 
+## 學習紀錄
+
+- **投入時間：** 約 2.5 小時
+- **主要閱讀內容：** OCUDU Architecture Overview、CU/DU Components、gNB Interfaces、O-RAN Architecture
+- **本次重點：** 理解 CU-CP、CU-UP、DU-high、DU-low 與 RU 的功能分工，並整理 E1、F1、FAPI、Open Fronthaul 等重要介面的位置與用途。
 ## 2.1 Architecture Overview
 
 在 5G RAN 中，一個 gNB 可以拆成 CU、DU 與 RU；OCUDU 則進一步把 CU 與 DU 分成更細的功能模組：
