@@ -1,5 +1,7 @@
 # 04. FAPI and OAI MAC Scheduler
+## 本章目標
 
+本章的目標是理解 **OAI MAC Scheduler 如何進行無線資源配置，以及 scheduling result 如何透過 FAPI 傳遞給 PHY**。重點將放在 DL/UL scheduling、PRB、MCS、HARQ，以及 `DL_TTI.request`、`UL_TTI.request`、`TX_DATA.request` 等重要 FAPI messages。
 ## 4.1 Why MAC Scheduler and FAPI Matter
 
 前面已經知道 OAI 的 Layer 2 與 Layer 1 大致位於：
