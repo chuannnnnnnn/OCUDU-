@@ -1,23 +1,17 @@
 # OCUDU-
-# 5G RAN Learning Notes
+5G RAN Notes
+這份筆記記錄我目前對 OCUDU、OpenAirInterface（OAI）、FAPI，以及 OAI L2 + NVIDIA Aerial L1 的學習過程。
 
-This repository records my learning notes on **5G RAN architecture, OCUDU, OpenAirInterface (OAI), FAPI, and NVIDIA Aerial L1**.
+我的閱讀順序不是一開始直接進 source code，而是先從整體 RAN architecture 開始，再逐步往 implementation 深入：
 
-The goal of these notes is to first understand the overall 5G RAN architecture and then gradually move from architecture-level concepts to actual OAI source code.
-
-My current learning path is:
-
-```text
 OCUDU Architecture
-        ↓
-CU / DU / RU
         ↓
 OAI Architecture
         ↓
-MAC / Layer 2
-        ↓
 FAPI
         ↓
-NVIDIA Aerial L1
+OAI MAC Scheduler
+        ↓
+OAI L2 + NVIDIA Aerial L1
         ↓
 Source Code Trace
