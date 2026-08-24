@@ -1,5 +1,7 @@
 # 03. OAI Architecture
+## 本章目標
 
+本章的目標是將前面建立的 5G RAN 架構概念對應到 **OpenAirInterface（OAI）source code**，了解 `openair1`、`openair2`、`openair3`、`nfapi` 等主要目錄分別負責哪些功能，並找到後續閱讀 MAC、FAPI 與 PHY source code 的方向。
 ## 3.1 OpenAirInterface 是什麼？
 
 OpenAirInterface（OAI）是一套開源 cellular RAN software stack，可用來研究與實作：
