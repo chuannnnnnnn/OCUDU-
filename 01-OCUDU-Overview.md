@@ -1,5 +1,12 @@
 # 01. 5G Open RAN 學習筆記：以 OCUDU 作為架構拆解的切入點
+## 學習紀錄
 
+- **學習日期：** 2026/08/23
+- **投入時間：** 約 3 小時
+- **主要閱讀內容：** OCUDU Overview、O-RAN Architecture
+- **本次重點：** CU / DU / RU 與 Functional Split 的基本概念
+
+---
 ## 1.1 從傳統基地台到 O-RAN 架構的轉變
 
 在傳統的理解中，5G 基地台架構可以先簡化成：
