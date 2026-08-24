@@ -1,53 +1,30 @@
-01. OCUDU Overview
-1.1 OCUDU 是什麼？
+1. 5G Open RAN 學習筆記：以 OCUDU 作為架構拆解的切入點
+1.1 從傳統基站到 O-RAN 架構的轉變
+在過去的觀念裡，5G 基地台的架構大致可以簡化成：
 
-OCUDU 是一套開源 5G RAN CU/DU software stack。
+5G Core ── gNB ── UE
 
-在傳統基地台中，可以先簡化成：
+但在 O-RAN 的架構設計中，gNB 被進一步拆分為更細緻的模組：
 
-5G Core
-   │
-  gNB
-   │
-  UE
+5G Core ── CU ── DU ── RU ── UE
 
-而在 5G / O-RAN 架構中，gNB 可以被拆分：
+這種功能拆分（Functional Split）的核心邏輯，在於把原本集中在單一硬體設備上的基地台功能模組化，並透過標準化的介面進行互連。
 
-5G Core
-   │
-  CU
-   │
-  DU
-   │
-  RU
-   │
-  UE
+1.2 現階段的學習目標與脈絡
+目前我選擇把 OCUDU 這套開源的 5G RAN CU/DU 軟體堆疊作為切入點，主要目的是先建立對整體 5G RAN 架構的宏觀理解。
 
-這種拆分的核心概念是：
+透過看 OCUDU 的架構，可以先釐清最上層的幾大核心元件：
 
-將原本集中在一個基地台中的功能拆成不同模組，並透過標準化 interface 互相連接。
+CU（Centralized Unit）
 
-1.2 為什麼要看 OCUDU？
+DU（Distributed Unit）
 
-我目前把 OCUDU 當成理解 5G RAN architecture 的入口。
+RU（Radio Unit）
 
-透過 OCUDU，可以先理解：
+接著再往下深入到更細緻的子模組切分：
 
-CU
-DU
-RU
+CU-CP / CU-UP
 
-以及後續更細的：
+DU-high / DU-low
 
-CU-CP
-CU-UP
-DU-high
-DU-low
-
-理解這些元件後，再去看 OAI source code，會比較容易知道每一個 protocol/module 在整個 gNB 的什麼位置。
-
-What I learned
-5G gNB 可以進行 functional split。
-CU、DU、RU 負責不同部分的 RAN 功能。
-OCUDU 適合先從 architecture 的角度理解 Open RAN。
-下一步需要進一步確認每個 component 中有哪些 protocol。
+先在架構層面把這些元件與介面的關係搞懂，之後直接去翻 OAI（OpenAirInterface）的 source code 時，心裡才比較有個底，知道各個 protocol 和 module 實際上是落在整個 gNB 的哪個位置。
