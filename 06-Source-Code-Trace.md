@@ -3,7 +3,7 @@
 
 本章的目標是從架構層面的理解進一步進入 **OAI source code**，實際追蹤一條 MAC 到 PHY 的執行流程，確認 Scheduler 如何產生 FAPI structures，以及這些 structures 最後如何被 OAI PHY 或 NVIDIA Aerial L1 使用。
 ## 學習紀錄
-
+- **學習日期：** 2026/08/24
 - **投入時間：** 約 4 小時
 - **OAI Branch / Tag：** `develop`
 - **主要閱讀內容：** OAI MAC Scheduler Source Code、FAPI Structures、L1 TX/RX Flow、Aerial FAPI Split
