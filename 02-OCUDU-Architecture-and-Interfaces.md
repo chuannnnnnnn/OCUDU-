@@ -568,6 +568,13 @@ F1-U
 
 > **CU-CP 決定「怎麼連線」，CU-UP 負責「傳送資料」。**
 
+### Control Plane 與 User Plane 路徑
+
+![Control Plane and User Plane](images/02_Control_User_Plane.PNG)
+
+**說明：**  
+這張圖用來區分控制面與使用者面的主要邏輯路徑。Control Plane 主要處理連線與控制訊號，User Plane 則負責實際使用者資料傳輸。
+
 ---
 
 ## 2.14 Three Important Functional Splits
