@@ -282,6 +282,13 @@ Reliability
 
 之間取得平衡。
 
+### PRB 資源概念
+
+![PRB Concept](images/03_PRB_Concept.PNG)
+
+**說明：**  
+在 NR 中，一個 PRB 在頻域上由 12 個連續 subcarriers 組成；時間域的 OFDM symbols 則由 Scheduler 另外決定。
+
 ---
 
 ## 4.7 HARQ
