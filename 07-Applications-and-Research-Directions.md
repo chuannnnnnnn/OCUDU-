@@ -1,15 +1,16 @@
-07. 這些模組可以拿來做什麼？從架構理解到實際應用
+# 07. 這些模組可以拿來做什麼？從架構理解到實際應用
 
-本章目標
+## 本章目標
 
-前面幾章主要是在理解 OCUDU、OAI、MAC Scheduler、FAPI 與 NVIDIA Aerial L1 的架構與運作方式。
+前面幾章主要是在理解 **OCUDU、OAI、MAC Scheduler、FAPI 與 NVIDIA Aerial L1** 的架構、功能與資料流程。
 
 這一章想進一步思考：
 
-當我已經知道這些模組分別負責什麼之後，實際上可以拿它們做哪些修改、實驗或研究？
+> 當我已經知道這些模組分別負責什麼之後，實際上可以拿它們做哪些修改、實驗或研究？
 
-目前我把可能的方向整理成：
+目前我把下一步的學習方向整理成：
 
+```text
 Architecture Understanding
         ↓
 Source Code Modification
@@ -19,22 +20,27 @@ System Integration
 Performance Measurement
         ↓
 Result Analysis
+```
 
-也就是從「知道模組是什麼」，進一步到：
+也就是從「知道這個模組是什麼」，進一步走向「知道可以改什麼、量什麼，以及如何驗證結果」。
 
-知道可以改什麼、量什麼，以及可以驗證什麼。
+---
 
-學習紀錄
+## 學習紀錄
 
-* 投入時間： 約 2.5 小時
-* 主要整理內容： OCUDU、OAI MAC Scheduler、FAPI、NVIDIA Aerial L1
-* 本次重點： 思考不同模組可以實際應用在哪些實驗與研究方向
-* 目前優先方向： OAI MAC Scheduler → FAPI → PHY
+- **學習日期：** 2026/08/25
+- **投入時間：** 約 2.5 小時
+- **主要整理內容：** OCUDU Functional Split、OAI MAC Scheduler、FAPI、NVIDIA Aerial L1
+- **本次重點：** 思考各模組可以實際應用在哪些實驗與研究方向
+- **目前優先方向：** `OAI MAC Scheduler → FAPI → PHY`
 
-7.1 從理解架構到實際應用
+---
 
-前面的學習主要是在回答：
+## 7.1 從理解架構到實際應用
 
+前面的筆記主要是在回答：
+
+```text
 OCUDU 的架構怎麼拆？
         ↓
 OAI 的程式碼放在哪裡？
@@ -44,9 +50,11 @@ MAC Scheduler 如何做資源配置？
 FAPI 如何連接 MAC 與 PHY？
         ↓
 NVIDIA Aerial L1 負責什麼？
+```
 
-但如果要開始做實作或研究，還需要進一步回答：
+但如果要開始進入實作，下一步更重要的問題會變成：
 
+```text
 我可以修改什麼？
         ↓
 修改後會影響什麼？
@@ -54,37 +62,38 @@ NVIDIA Aerial L1 負責什麼？
 我要量測什麼？
         ↓
 如何比較修改前後的結果？
+```
 
-因此我目前希望從單純閱讀文件，逐步往實際操作與驗證的方向前進。
+因此我目前希望把學習方向從單純閱讀 documentation，逐步往 **source code modification、實際操作與結果驗證** 的方向前進。
 
-⸻
+---
 
-7.2 OCUDU：研究 RAN Functional Split
+## 7.2 OCUDU：研究 RAN Functional Split
 
-OCUDU 可以拿來理解與研究 5G RAN 中不同功能如何進行拆分。
+OCUDU 對我來說，第一個用途是幫助理解與研究 5G RAN 的 functional split。
 
-例如：
+前面已經整理過：
 
+```text
 CU-CP
 CU-UP
 DU-high
 DU-low
 RU
+```
 
-這些模組可以進一步延伸出一些問題：
+理解這些模組之後，可以進一步思考：
 
-* 哪些功能適合放在 CU？
-* 哪些功能需要靠近 RU？
-* 哪些 interface 對 latency 比較敏感？
-* CU / DU 分離後會增加哪些 communication overhead？
-* 不同 deployment 方式會如何影響 system performance？
-
-因此我目前把 OCUDU 的用途理解成：
-
-OCUDU 可以作為研究 5G RAN functional split、模組部署方式，以及不同介面之間關係的架構基礎。
+- 哪些功能適合放在 CU？
+- 哪些功能需要靠近 RU？
+- CU / DU 分離後需要經過哪些 interfaces？
+- 哪些 interfaces 對 latency 比較敏感？
+- 不同 deployment 方式會如何影響 system complexity？
+- 功能集中化與分散化之間有什麼 trade-off？
 
 例如：
 
+```text
 Centralized CU
       ↓
       F1
@@ -92,34 +101,37 @@ Centralized CU
 Distributed DU
       ↓
       RU
+```
 
-可以進一步研究 CU 與 DU 分離之後的：
+可以進一步研究 CU 與 DU 分離後的 communication、deployment 與 latency 問題。
 
-Latency
-+
-Deployment
-+
-Communication Overhead
-+
-System Performance
+因此我目前把 OCUDU 的用途理解成：
 
-⸻
+> OCUDU 可以作為研究 5G RAN functional split、模組部署方式與介面關係的架構基礎。
 
-7.3 OAI：實際修改 5G gNB Software
+---
 
-OpenAirInterface 提供實際的 RAN source code，因此可以直接進行：
+## 7.3 OAI：實際修改 5G gNB Software
 
-* Source code trace
-* Protocol behavior observation
-* Scheduling modification
-* Performance experiment
+OpenAirInterface 不只是提供 architecture documentation，也提供實際的 RAN source code。
 
-目前我認為最適合先開始實作的是：
+因此可以進一步進行：
 
+- Source code trace
+- Protocol behavior observation
+- Scheduling modification
+- Message flow tracing
+- Performance experiment
+
+目前我認為最適合先進入實作的是：
+
+```text
 OAI MAC Scheduler
+```
 
-因為 Scheduler 會決定：
+因為 Scheduler 會直接決定：
 
+```text
 Which UE?
     ↓
 Which PRBs?
@@ -129,191 +141,184 @@ Which MCS?
 Which HARQ process?
     ↓
 Which time-domain resources?
+```
 
-因此可以直接修改其中的 scheduling policy，再觀察修改前後的結果。
+所以如果希望從「理解系統」進一步走向「修改系統」，MAC Scheduler 是一個比較明確的起點。
 
-也就是從：
+---
 
-Read Scheduler
-
-進一步到：
-
-Modify Scheduler
-      ↓
-Run Experiment
-      ↓
-Measure Result
-
-⸻
-
-7.4 MAC Scheduler：做無線資源配置實驗
+## 7.4 MAC Scheduler：做 Radio Resource Allocation 實驗
 
 例如同時存在兩個 UE：
 
+```text
 UE 1
 Channel Condition = Good
 Buffer = High
+
 UE 2
 Channel Condition = Poor
 Buffer = High
+```
 
-Scheduler 需要決定：
+Scheduler 必須決定有限的 radio resources 要如何分配。
 
-如何將有限的 radio resources 分配給不同 UE？
+概念上會經過：
 
-可以先觀察原本的 Scheduler：
-
-Original Scheduler
-        ↓
+```text
 UE Selection
-        ↓
+      ↓
 PRB Allocation
-        ↓
+      ↓
 MCS Selection
-        ↓
+      ↓
+HARQ
+      ↓
 Scheduling Result
+```
 
-接著嘗試修改其中一個較小的部分，例如：
+因此可以先觀察 OAI 原本的 scheduling policy，再嘗試修改其中一個比較小的部分。
 
-* UE priority
-* UE selection rule
-* PRB allocation
-* Scheduling fairness
-* Resource allocation policy
+例如：
 
-再重新執行：
+- UE priority
+- UE selection rule
+- PRB allocation rule
+- Scheduling fairness
+- Resource allocation policy
 
+實驗流程可以整理成：
+
+```text
 Original Scheduler
         ↓
 Collect Results
-Modified Scheduler
         ↓
-Collect Results
+Modify One Policy
         ↓
-Compare
-
-可以比較的項目包括：
-
-* Throughput
-* Latency
-* PRB utilization
-* UE fairness
-* MCS distribution
-
-因此 OAI MAC Scheduler 可以作為一個實際的：
-
-Radio Resource Management
+Run Again
         ↓
-Experiment Platform
+Compare Results
+```
 
-讓 scheduling algorithm 不只停留在理論層面，而是可以實際修改與驗證。
+可以觀察的項目包括：
 
-⸻
+- Throughput
+- Latency
+- PRB utilization
+- UE fairness
+- MCS distribution
 
-7.5 FAPI：觀察 Scheduler 如何把決策交給 PHY
+因此 OAI MAC Scheduler 可以作為一個實際的 **radio resource management experiment platform**。
+
+---
+
+## 7.5 FAPI：驗證 Scheduler 的決策如何進入 PHY
 
 前面已經知道：
 
+```text
 MAC Scheduler
       ↓
 FAPI
       ↓
 PHY
+```
 
-但在實作上，可以再進一步追蹤：
+但在實際 source code 中，可以再進一步確認：
 
-Scheduling Decision
-        ↓
-FAPI Structure
-        ↓
-PHY Processing
+> Scheduler 做出的 PRB、MCS、HARQ 等決策，最後到底被寫到哪些 structures？
 
 例如 Scheduler 做出：
 
-UE   = UE1
-PRB  = X
-MCS  = Y
+```text
+UE = UE1
+PRB = X
+MCS = Y
 HARQ = Z
+```
 
-接著就可以確認這些資訊如何進入：
+接著可以追蹤這些資訊如何進入：
 
+```text
 DL_TTI.request
 TX_DATA.request
 UL_TTI.request
+```
 
-因此可以做一個簡單的驗證流程：
+因此可以建立一個 source trace：
 
+```text
 Scheduler Decision
         ↓
-Trace FAPI Message
+FAPI Structure
         ↓
-Check PRB / MCS / HARQ
+Check PRB / MCS / HARQ Fields
         ↓
-Confirm PHY Input
+PHY Input
+```
 
-這樣可以把原本抽象的：
+這樣就可以把原本抽象的：
 
-MAC
- ↓
-FAPI
- ↓
-PHY
+```text
+MAC → FAPI → PHY
+```
 
-變成實際可以從 source code 驗證的 data flow。
+進一步變成實際可以從 source code 驗證的 data flow。
 
-⸻
+---
 
-7.6 FAPI：整合不同的 Layer 1
+## 7.6 FAPI：整合不同的 Layer 1
 
-FAPI 的另一個重要用途，是讓 MAC 與 PHY 之間具有較明確的 interface。
+FAPI 的另一個用途，是讓 MAC 與 PHY 之間有比較明確的功能邊界。
 
-例如原本可以是：
+原本可以是：
 
+```text
 OAI MAC
    ↓
 FAPI
    ↓
 OAI PHY
+```
 
-如果 Layer 1 implementation 改變，也可以形成：
+如果使用另一套 Layer 1，也可以變成：
 
+```text
 OAI MAC
    ↓
 FAPI
    ↓
 External PHY
+```
 
 因此可以進一步研究：
 
-* MAC / PHY separation
-* Different Layer 1 implementations
-* FAPI compatibility
-* Real-time timing
-* IPC latency
-* L2 / L1 integration
+- MAC / PHY separation
+- Different Layer 1 implementations
+- FAPI compatibility
+- FAPI version compatibility
+- Real-time timing
+- IPC latency
+- L2 / L1 integration
 
-這也是後續理解：
+這也是後續研究：
 
+```text
 OAI L2+
    +
 NVIDIA Aerial L1
+```
 
-整合方式的重要基礎。
+的重要基礎。
 
-也就是：
+---
 
-Keep OAI Layer 2
-        ↓
-Standardized Interface
-        ↓
-Replace Layer 1
+## 7.7 NVIDIA Aerial L1：研究 GPU 加速 PHY
 
-⸻
+如果把 OAI 與 NVIDIA Aerial L1 整合，可以形成：
 
-7.7 NVIDIA Aerial L1：研究 GPU 加速 PHY
-
-如果把 OAI 與 NVIDIA Aerial L1 整合：
-
+```text
 OAI MAC Scheduler
         ↓
        FAPI
@@ -322,240 +327,189 @@ OAI MAC Scheduler
         ↓
 NVIDIA Aerial L1
         ↓
-      cuPHY
+     cuPHY
         ↓
    NVIDIA GPU
+```
 
-研究問題就可以從：
+這時候研究問題就不只停留在：
 
+```text
 Scheduler 怎麼分配資源？
+```
 
-進一步延伸到：
+還可以進一步變成：
 
+```text
 PHY processing 需要多久？
         ↓
-GPU 是否能在 slot deadline 前完成？
+GPU 是否能在 deadline 前完成？
         ↓
-IPC / Data Movement 是否造成 overhead？
+IPC 是否產生額外 latency？
+        ↓
+Data movement 是否成為 bottleneck？
+```
 
-可以觀察：
+可以觀察的項目包括：
 
-* PHY processing latency
-* GPU utilization
-* Slot processing time
-* nvIPC communication latency
-* CPU / GPU data movement
-* Throughput
+- PHY processing latency
+- GPU utilization
+- Slot processing time
+- nvIPC communication latency
+- CPU / GPU data movement
+- Throughput
+- Real-time deadline
 
-因此 NVIDIA Aerial L1 可以拿來研究：
+因此我目前把 NVIDIA Aerial L1 的用途理解成：
 
-GPU acceleration 如何應用在 5G PHY，以及 GPU processing 如何滿足 real-time RAN 的時間要求。
+> 可以拿來研究 GPU acceleration 如何應用在 5G PHY，以及 GPU computing 是否能滿足 real-time RAN processing 的需求。
 
-這也讓原本的研究問題從單純的：
+---
 
-Wireless Scheduling
+## 7.8 比較 OAI Native PHY 與 NVIDIA Aerial L1
 
-延伸到：
+如果後續測試環境與硬體允許，也可以進一步比較不同 Layer 1 implementation。
 
-Wireless Scheduling
-        +
-Parallel Processing
-        +
-GPU Computing
-        +
-Real-Time System
+例如：
 
-⸻
+```text
+        Same / Similar Workload
+                  │
+        ┌─────────┴─────────┐
+        ↓                   ↓
 
-7.8 OAI Native PHY 與 NVIDIA Aerial L1 的比較
+ OAI Native PHY      NVIDIA Aerial L1
+        │                   │
+        ↓                   ↓
 
-未來如果測試環境允許，也可以進一步比較兩種 PHY implementation：
+ Native PHY Path        GPU / cuPHY
+        │                   │
+        └─────────┬─────────┘
+                  ↓
+               Compare
+```
 
-             Same / Similar Workload
-                      │
-            ┌─────────┴─────────┐
-            ↓                   ↓
-      OAI Native PHY      NVIDIA Aerial L1
-            │                   │
-            ↓                   ↓
-       Native / CPU          GPU / cuPHY
-        Processing           Processing
-            │                   │
-            └─────────┬─────────┘
-                      ↓
-                   Compare
+可以比較：
 
-可能比較：
+- Processing latency
+- Throughput
+- CPU utilization
+- GPU utilization
+- Resource consumption
+- Real-time deadline behavior
 
-* Processing latency
-* Throughput
-* CPU utilization
-* GPU utilization
-* Real-time deadline
-* Resource consumption
+這可以進一步回答：
 
-這可以進一步了解：
+> 將部分 PHY workload 移到 GPU 後，實際獲得了哪些效益，又增加了哪些 IPC、memory transfer 與 system integration cost？
 
-GPU Acceleration
-       ↓
-Processing Benefit
-       +
-IPC Overhead
-       +
-Memory Transfer
-       +
-Integration Cost
+---
 
-也就是 GPU acceleration 帶來多少 processing benefit，同時又增加多少 IPC、memory transfer 與 system integration cost。
+## 7.9 我目前最適合先做的實驗
 
-⸻
+以目前的學習進度來看，我認為還不適合一開始就直接進行完整的：
 
-7.9 我目前最適合先做的實驗
-
-以目前的理解，我認為第一步不適合直接從完整：
-
+```text
 OAI L2+
    ↓
 NVIDIA Aerial L1
    ↓
 O-RU
+```
+
+比較適合的第一步是先從：
+
+```text
+OAI MAC Scheduler
+        ↓
+FAPI
+        ↓
+PHY
+```
 
 開始。
 
-因為這會同時涉及：
+### Step 1：觀察 Scheduler
 
-OAI
-+
-FAPI
-+
-IPC
-+
-GPU
-+
-PHY
-+
-Fronthaul
+第一步先不修改 source code，而是觀察 Scheduler 每次產生的：
 
-一次需要處理的變數太多。
-
-因此目前比較適合先從較小範圍的：
-
-OAI MAC Scheduler
-
-開始進行實驗。
-
-Step 1：觀察 Scheduler
-
-先不修改程式，記錄：
-
+```text
 UE
 PRB
 MCS
 HARQ
+```
 
 等 scheduling information。
 
-目標是先確認：
+### Step 2：Trace FAPI
 
-Scheduler 原本到底做了什麼決定？
+接著確認 Scheduler 的結果如何進入：
 
-⸻
-
-Step 2：Trace FAPI
-
-接著追蹤：
-
-Scheduler
-    ↓
+```text
 DL_TTI.request
 TX_DATA.request
 UL_TTI.request
+```
 
-確認 scheduling decision 最後如何進入 FAPI structures。
+並找出相關欄位在 source code 中是在哪裡被設定。
 
-也就是把：
-
-Scheduling Algorithm
-
-與：
-
-FAPI Message
-
-實際對應起來。
-
-⸻
-
-Step 3：做一個小修改
+### Step 3：做一個小修改
 
 例如：
 
+```text
 Modify UE Priority
+```
 
 或：
 
+```text
 Modify PRB Allocation Rule
+```
 
-先避免一次改動太多 Scheduler logic。
+一開始先避免同時改動太多 Scheduler logic。
 
-這樣比較容易確認：
-
-Code Modification
-       ↓
-Scheduling Change
-       ↓
-Performance Change
-
-之間的關係。
-
-⸻
-
-Step 4：比較結果
+### Step 4：比較修改前後結果
 
 最後比較：
 
+```text
 Original Scheduler
         vs.
 Modified Scheduler
+```
 
 觀察：
 
-* Throughput
-* PRB allocation
-* MCS
-* UE fairness
-* Latency
+- Throughput
+- Latency
+- PRB allocation
+- UE fairness
+- MCS
 
-是否出現明顯差異。
+是否產生差異。
 
-因此目前第一個完整實驗流程可以整理成：
+這樣可以從比較小的 modification 開始，逐步建立真正操作 OAI source code 的經驗。
 
-Observe
-   ↓
-Trace
-   ↓
-Modify
-   ↓
-Measure
-   ↓
-Compare
+---
 
-⸻
+## 7.10 不同模組可以做什麼？
 
-7.10 不同模組可以做什麼？
+目前我把不同模組與可能的實作方向整理如下：
 
-目前可以先把不同模組的用途整理成：
+| Module | 可以做的事情 | 可以觀察的項目 |
+|---|---|---|
+| OCUDU | Functional Split / Deployment | Architecture、Latency |
+| OAI MAC Scheduler | 修改 scheduling policy | Throughput、Fairness、PRB |
+| FAPI | Trace MAC-PHY messages | PRB、MCS、HARQ |
+| OAI PHY | PHY processing analysis | Processing Time |
+| NVIDIA Aerial L1 | GPU-accelerated PHY | GPU Utilization、Latency |
+| nvIPC | L2 / L1 communication | IPC Latency |
+| O-RAN Fronthaul | DU-low / O-RU communication | Transport、Timing |
 
-Module	可以做的事情	可以觀察的項目
-OCUDU	Functional Split / Deployment	Architecture、Latency
-OAI MAC Scheduler	修改 scheduling policy	Throughput、Fairness、PRB
-FAPI	Trace MAC-PHY messages	PRB、MCS、HARQ
-OAI PHY	PHY processing analysis	Processing Time
-NVIDIA Aerial L1	GPU-accelerated PHY	GPU Utilization、Latency
-nvIPC	L2 / L1 communication	IPC Latency
-O-RAN Fronthaul	DU-low / O-RU communication	Transport、Timing
+因此這些模組並不是彼此完全獨立，而是可以串成：
 
-因此這些模組並不是完全獨立的研究方向，而是可以串成：
-
+```text
 5G Protocol
       +
 Scheduling Algorithm
@@ -569,27 +523,15 @@ GPU Computing
 Real-Time System
       +
 Networking
+```
 
-也就是同一套 5G RAN system 中，其實同時包含了：
+---
 
-Protocol
-+
-Algorithm
-+
-Software
-+
-Hardware Acceleration
-+
-Real-Time Communication
+## 7.11 我目前的實作方向
 
-等不同層面的問題。
+目前我認為最值得優先深入的是：
 
-⸻
-
-7.11 我目前的實作方向
-
-目前我認為最適合優先深入的是：
-
+```text
 OAI MAC Scheduler
         ↓
 Scheduling Decision
@@ -597,21 +539,18 @@ Scheduling Decision
 FAPI Structure
         ↓
 PHY
+```
 
-先把這一條 path 真正從 source code 到實際執行看懂。
+先真正看懂：
 
-也就是先理解：
+- Scheduler 在哪裡做決策
+- PRB / MCS / HARQ 在哪裡產生
+- 這些資訊如何寫進 FAPI structures
+- PHY 最後如何使用這些資訊
 
-Where is the decision made?
-        ↓
-Which structure is modified?
-        ↓
-Which FAPI message is generated?
-        ↓
-How does PHY use it?
+等這條 path 熟悉之後，再逐步延伸到：
 
-之後再逐步延伸：
-
+```text
 OAI MAC Scheduler
         ↓
 FAPI
@@ -621,39 +560,35 @@ nvIPC
 NVIDIA Aerial L1
         ↓
 GPU
+```
 
-也就是先從：
+也就是先從較小的 source code modification 開始，再逐步走向完整的 L2 / L1 integration。
 
-Single Module
+---
 
-開始，再逐步走向：
+## 7.12 What I Learned
 
-L2 / L1 Integration
-
-以及完整的 system-level experiment。
-
-⸻
-
-7.12 What I Learned
-
-完成前面幾章的整理後，我目前理解這些模組不只是用來描述 5G RAN architecture，也可以拿來建立實際的實驗。
+經過前面 01～06 的整理後，我目前理解這些模組不只是用來描述 5G RAN architecture，也可以作為實際實驗與研究的平台。
 
 目前我認為可以進一步做的事情包括：
 
-* 修改 OAI MAC Scheduler
-* 比較不同 PRB allocation strategy
-* Trace FAPI messages
-* 驗證 scheduling decision 如何進入 PHY
-* 比較不同 Layer 1 implementation
-* 研究 OAI L2+ 與 NVIDIA Aerial L1 integration
-* 評估 throughput、latency、fairness 與 processing time
+- 修改 OAI MAC Scheduler
+- 比較不同 PRB allocation strategy
+- Trace FAPI messages
+- 驗證 scheduling decision 如何進入 PHY
+- 比較不同 Layer 1 implementation
+- 研究 OAI L2+ 與 NVIDIA Aerial L1 integration
+- 評估 throughput、latency、fairness 與 processing time
 
 因此接下來我的學習方向會逐漸從：
 
+```text
 What is this module?
+```
 
 轉變成：
 
+```text
 What can I modify?
         ↓
 What can I measure?
@@ -661,31 +596,17 @@ What can I measure?
 What can I compare?
         ↓
 What can I verify?
+```
 
-對我來說，這代表學習方向開始從：
+這也是我下一步希望補強的實作方向。
 
-Architecture Understanding
+---
 
-進一步走向：
-
-Source Code
-     ↓
-Experiment
-     ↓
-Measurement
-     ↓
-Analysis
-
-也就是不只知道系統「怎麼組成」，還要開始理解：
-
-如果真的修改其中一個模組，整個 system behavior 會發生什麼變化？
-
-⸻
-
-7.13 Next Step
+## 7.13 Next Step
 
 目前預計先從：
 
+```text
 OAI MAC Scheduler
         ↓
 Observe Scheduling Result
@@ -695,21 +616,13 @@ Trace FAPI
 Small Scheduler Modification
         ↓
 Performance Comparison
+```
 
 開始。
 
-第一階段先確認：
+等熟悉 OAI Scheduler 與 FAPI 的實際操作之後，再進一步研究：
 
-Scheduler Decision
-        ↓
-PRB / MCS / HARQ
-        ↓
-FAPI Structure
-
-之間的實際關係。
-
-等熟悉 OAI Scheduler 與 FAPI 的實際操作後，再進一步研究：
-
+```text
 OAI L2+
    ↓
 FAPI
@@ -717,44 +630,26 @@ FAPI
 nvIPC
    ↓
 NVIDIA Aerial L1
+```
 
 的完整 integration。
 
-因此目前的學習順序會是：
+---
 
-Architecture
-     ↓
-Source Code Trace
-     ↓
-Scheduler Experiment
-     ↓
-FAPI Verification
-     ↓
-L2 / L1 Integration
-     ↓
-Performance Evaluation
+## References
 
-這會是接下來從「閱讀 OAI」逐漸走向「實際使用 OAI 做實驗」的方向。
+- OCUDU Documentation
+- OpenAirInterface RAN Repository
+- OpenAirInterface MAC Scheduler Architecture
+- OpenAirInterface FAPI / nFAPI Documentation
+- OpenAirInterface Aerial FAPI Split Tutorial
+- NVIDIA Aerial L1 Documentation
+- Small Cell Forum — 5G FAPI Specification
 
-⸻
+> 本章主要整理目前根據 architecture、documentation 與 source code 閱讀後想到的可行實作方向。實際實驗方式仍需要依照後續使用的 OAI branch、測試環境與硬體平台進一步確認。
 
-References
+---
 
-本章主要參考：
+**Previous:** [06. Source Code Trace](06-Source-Code-Trace.md)
 
-* OCUDU Documentation
-* OpenAirInterface RAN Repository
-* OpenAirInterface — MAC Scheduler Architecture
-* OpenAirInterface — FAPI / nFAPI Documentation
-* OpenAirInterface — Aerial FAPI Split Tutorial
-* NVIDIA Aerial — L1 Documentation
-* NVIDIA Aerial — cuPHY Documentation
-* Small Cell Forum — 5G FAPI Specification
-
-Note: 本章主要整理目前根據 architecture、documentation 與 source code 閱讀後想到的實作方向。實際可執行的實驗仍需要依照使用的 OAI branch、測試環境與硬體平台進一步確認。
-
-⸻
-
-Previous: 06. Source Code Trace
-
-Back to: README
+**Back to:** [README](README.md)
