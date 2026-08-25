@@ -14,7 +14,12 @@
 這張圖整理了 5G gNB 在功能拆分後的主要元件，包括 **CU-CP、CU-UP、DU、RU 與 UE**，以及它們之間的重要介面，例如 `N2`、`N3`、`E1`、`F1-C` 與 `F1-U`。  
 其中 **CU-CP** 主要負責控制面功能，例如 RRC、control-plane PDCP、NGAP / N2 signaling 與 mobility control；**CU-UP** 主要負責 SDAP、user-plane PDCP 與使用者資料傳輸；**DU** 則負責 RLC、MAC 與 High-PHY。  
 這張圖對應筆記中的 **Chapter 02：OCUDU Architecture and Interfaces**。
+## Figure 1 學習紀錄
 
+- **學習日期：** 2026/08/25
+- **投入時間：** 約 40 分鐘
+- **修正重點：** 重新整理 CU-CP、CU-UP、DU、RU 的功能分工，以及 `N2`、`N3`、`E1`、`F1-C`、`F1-U` 等主要介面。
+- **學到的內容：** 更清楚理解 Control Plane、User Plane 與 DU / RU 在 gNB functional split 中的位置。
 ---
 
 ## Figure 2. Control Plane 與 User Plane 路徑
@@ -24,6 +29,13 @@
 這張圖用來區分 **Control Plane** 與 **User Plane** 的主要邏輯路徑。  
 左側的 Control Plane 路徑主要處理連線建立、設定、移動性管理與狀態回報等控制訊號；右側的 User Plane 路徑則主要負責實際的使用者資料傳輸，例如上網資料與影音串流。  
 這張圖對應筆記中的 **Chapter 02：OCUDU Architecture and Interfaces**。
+
+## Figure 2 學習紀錄
+
+- **學習日期：** 2026/08/25
+- **投入時間：** 約 30 分鐘
+- **修正重點：** 將 Control Plane 與 User Plane 拆成兩條邏輯路徑，重新整理 AMF / CU-CP 與 UPF / CU-UP 的關係。
+- **學到的內容：** 更清楚理解控制訊號與使用者資料雖然最後都會經過 DU、RU 與 UE，但上層負責的功能與介面不同。
 
 ---
 
@@ -35,6 +47,13 @@
 在 NR 中，1 個 PRB 在**頻域**上由 **12 個連續 subcarriers** 組成，而時間域資源則由排程器另外指定，因此 PRB 本身不固定等於 1 個 slot。  
 這張圖對應筆記中的 **Chapter 04：FAPI and OAI MAC Scheduler**。
 
+## Figure 3 學習紀錄
+
+- **學習日期：** 2026/08/25
+- **投入時間：** 約 25 分鐘
+- **修正重點：** 重新確認 PRB 的定義，明確標示 1 個 PRB 在頻域上由 12 個連續 subcarriers 組成，時間域資源則由 Scheduler 另外指定。
+- **學到的內容：** 更清楚理解 PRB 是頻域資源單位，不能直接把 1 個 PRB 等同於 1 個 slot。
+
 ---
 
 ## Figure 4. gNB 如何透過 Downlink Scheduling 通知 UE 接收資料
@@ -44,6 +63,13 @@
 這張圖用來說明 **Downlink scheduling** 的基本流程，也就是 gNB 如何告知 UE 何時以及在哪些資源上接收資料。  
 簡單來說，gNB 會先透過 **PDCCH / DCI** 公告排程資訊，UE 解碼後才知道後續應該在哪些 PRBs、使用什麼 MCS 接收 **PDSCH**。  
 這張圖對應筆記中的 **Chapter 04：FAPI and OAI MAC Scheduler**。
+
+## Figure 4 學習紀錄
+
+- **學習日期：** 2026/08/25
+- **投入時間：** 約 35 分鐘
+- **修正重點：** 重新整理 Downlink scheduling 流程，區分 Scheduler decision、PDCCH / DCI 與 PDSCH 的角色。
+- **學到的內容：** 更清楚理解 UE 需要先解碼 PDCCH 上的 DCI，才能知道後續應在哪些資源上接收 PDSCH。
 
 ---
 
@@ -55,6 +81,13 @@
 在 Uplink 中，gNB 會先產生 **Uplink Grant**，並透過 **PDCCH / DCI** 通知 UE 未來應在哪些 PRBs、使用什麼 MCS 傳送 **PUSCH**；之後 gNB 解碼完成，再透過 `RX_DATA.indication` 與 `CRC.indication` 將結果回報 MAC。  
 這張圖對應筆記中的 **Chapter 04：FAPI and OAI MAC Scheduler**。
 
+## Figure 5 學習紀錄
+
+- **學習日期：** 2026/08/25
+- **投入時間：** 約 35 分鐘
+- **修正重點：** 重新整理 Dynamic UL Grant 流程，補強 gNB 如何通知 UE 何時、在哪些 PRBs 上傳送 PUSCH，以及接收結果如何回報 MAC。
+- **學到的內容：** 更清楚理解 Uplink transmission 不是 UE 任意傳送，而是依照 gNB 的 scheduling grant 在指定資源上進行。
+
 ---
 
 ## Figure 6. OAI L2+ 與 NVIDIA Aerial L1 整合架構圖
@@ -64,6 +97,13 @@
 這張圖整理了我目前對 **OAI L2+ 與 NVIDIA Aerial L1 整合架構**的理解。  
 在這個架構中，OAI 主要負責 **RRC、PDCP / SDAP、RLC 與 MAC Scheduler**，並透過 **SCF FAPI over nvIPC** 與 Aerial L1 溝通；Aerial L1 則透過 **L2 Adapter、cuPHY Driver、cuPHY 與 GPU** 執行實際的 PHY processing，最後再透過 fronthaul 連接 **O-RU**。  
 這張圖對應筆記中的 **Chapter 05：OAI L2 + NVIDIA Aerial L1**。
+
+## Figure 6 學習紀錄
+
+- **學習日期：** 2026/08/25
+- **投入時間：** 約 45 分鐘
+- **修正重點：** 重新整理 OAI L2+ 與 NVIDIA Aerial L1 的模組分工，以及 `FAPI`、`nvIPC`、L2 Adapter、cuPHY Driver、cuPHY、GPU 與 O-RU 的關係。
+- **學到的內容：** 更清楚理解 OAI 保留上層 protocol 與 MAC Scheduler，而 Aerial L1 負責 GPU 加速的 PHY processing。
 
 ---
 
