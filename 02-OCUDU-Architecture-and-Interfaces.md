@@ -107,7 +107,33 @@ RU
 ```
 
 ---
+### Mermaid 版本
 
+```markdown
+
+### 圖：CU-CP / CU-UP / DU 協定架構圖
+
+```mermaid
+
+flowchart TD
+
+    AMF[AMF] -->|N2| CUCP[CU-CP]
+
+    UPF[UPF] -->|N3| CUUP[CU-UP]
+
+    CUCP -->|E1| CUUP
+
+    CUCP -->|F1-C| DU[DU]
+
+    CUUP -->|F1-U| DU
+
+    CUCP --> RRC[RRC / Control Plane]
+
+    CUUP --> PDCP[SDAP / PDCP / User Plane]
+
+    DU --> RLCMAC[RLC / MAC]
+
+    DU --> PHY[PHY]
 ## 2.3 CU-CP
 
 CU-CP（Central Unit - Control Plane）主要負責控制面的功能。
