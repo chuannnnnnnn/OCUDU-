@@ -1,4 +1,4 @@
-# 06. Source Code Trace
+鞥 06. Source Code Trace
 ## 本章目標
 
 本章的目標是從架構層面的理解進一步進入 **OAI source code**，實際追蹤一條 MAC 到 PHY 的執行流程，確認 Scheduler 如何產生 FAPI structures，以及這些 structures 最後如何被 OAI PHY 或 NVIDIA Aerial L1 使用。
@@ -1214,5 +1214,5 @@ Layer 1 Reception
 
 **Previous:** [05. OAI L2 + NVIDIA Aerial L1](05-OAI-L2-NVIDIA-Aerial-L1.md)
 
-**Next:** [07. Source Code Trace](06-Source-Code-Trace.md)
+**Next:** [07. Applications-and-Research-Directions](07-Applications-and-Research-Directions.md）
 
