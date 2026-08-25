@@ -529,6 +529,13 @@ TX_DATA.request
 =
 What to transmit
 ```
+### Downlink Scheduling Flow
+
+![Downlink Scheduling](images/04_Downlink_Scheduling.PNG)
+
+**說明：**  
+gNB 會先透過 PDCCH 上的 DCI 告知 UE 排程資訊，UE 解碼後才知道應在哪些資源上接收 PDSCH。
+
 
 ---
 
@@ -566,6 +573,13 @@ UL_TTI.request
 告訴 PHY：
 
 > 未來某個 UL slot 中，應該在哪些 resources 上準備接收 UE transmission。
+
+### Uplink Scheduling Flow
+
+![Uplink Scheduling](images/05_Uplink_Scheduling.PNG)
+
+**說明：**  
+gNB 透過 Dynamic UL Grant 告知 UE 未來應在哪些資源上傳送 PUSCH，PHY 完成接收後再把解碼結果回報給 MAC。
 
 ---
 
