@@ -58,6 +58,13 @@ gNB
 
 這套架構的重點，不只是把 gNB 拆成很多程式，而是把不同 RAN 功能分開，再利用標準化介面把它們連接起來。
 
+### CU-CP / CU-UP / DU 協定架構圖
+
+![CU-CP / CU-UP / DU Architecture](images/01_CU_DU_RU_Architecture.PNG)
+
+**說明：**  
+這張圖整理 CU-CP、CU-UP、DU 與 RU 的功能分工，以及 N2、N3、E1、F1-C、F1-U 等主要介面的位置。
+
 ---
 
 ## 2.2 Protocol Stack 對應
