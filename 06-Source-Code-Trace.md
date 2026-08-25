@@ -1214,5 +1214,4 @@ Layer 1 Reception
 
 **Previous:** [05. OAI L2 + NVIDIA Aerial L1](05-OAI-L2-NVIDIA-Aerial-L1.md)
 
-**Next:** [07. Applications and Research Directions](07-Applications-and-Research-Directions.md）
-**Previous:** [07. Applications and Research Directions](07-Applications-and-Research-Directions.md)
+**Next:** [07. Applications and Research Directions](07-Applications-and-Research-Directions.md)
