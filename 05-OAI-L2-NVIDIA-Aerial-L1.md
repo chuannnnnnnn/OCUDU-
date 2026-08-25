@@ -110,6 +110,13 @@ OAI L2 + NVIDIA Aerial L1 可以簡化成：
 | cuPHY             | GPU-accelerated 5G PHY              |
 | O-RU              | Lower PHY / RF                      |
 
+### OAI L2+ 與 NVIDIA Aerial L1 整合架構
+
+![OAI L2+ and NVIDIA Aerial L1](images/06_OAI_Aerial_Integration.PNG)
+
+**說明：**  
+OAI 保留 RRC、PDCP / SDAP、RLC 與 MAC Scheduler，並透過 SCF FAPI over nvIPC 與 NVIDIA Aerial L1 交換訊息；Aerial L1 再利用 cuPHY 與 GPU 執行 PHY processing，最後連接 O-RU。
+
 ---
 
 ## 5.3 What Remains in OAI?
