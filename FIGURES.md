@@ -107,21 +107,6 @@
 
 ---
 
-## Figure-to-Chapter Mapping
-
-| Figure | Topic | Related Chapter |
-|---|---|---|
-| Figure 1 | CU-CP / CU-UP / DU 協定架構圖 | Chapter 02 |
-| Figure 2 | Control Plane 與 User Plane 路徑 | Chapter 02 |
-| Figure 3 | PRB（Physical Resource Block）的概念 | Chapter 04 |
-| Figure 4 | Downlink Scheduling | Chapter 04 |
-| Figure 5 | Uplink Scheduling | Chapter 04 |
-| Figure 6 | OAI L2+ 與 NVIDIA Aerial L1 整合架構圖 | Chapter 05 |
-| Figure 7 | F1 Functional Split 與 Protocol Stack | Chapter 08 |
-| Figure 8 | UE Registration Flow：DU → CU → AMF | Chapter 08 |
-
----
-
 
 ## Figure 7. OAI 中 CU ↔ DU 的 F1 功能切分與協定堆疊
 
@@ -391,5 +376,19 @@ Function
 
 這也是目前我對「從程式去對應規格」的理解。
 
+
+---
+## Figure-to-Chapter Mapping
+
+| Figure | Topic | Related Chapter |
+|---|---|---|
+| Figure 1 | CU-CP / CU-UP / DU 協定架構圖 | Chapter 02 |
+| Figure 2 | Control Plane 與 User Plane 路徑 | Chapter 02 |
+| Figure 3 | PRB（Physical Resource Block）的概念 | Chapter 04 |
+| Figure 4 | Downlink Scheduling | Chapter 04 |
+| Figure 5 | Uplink Scheduling | Chapter 04 |
+| Figure 6 | OAI L2+ 與 NVIDIA Aerial L1 整合架構圖 | Chapter 05 |
+| Figure 7 | F1 Functional Split 與 Protocol Stack | Chapter 08 |
+| Figure 8 | UE Registration Flow：DU → CU → AMF | Chapter 08 |
 
 ---
