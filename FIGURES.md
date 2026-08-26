@@ -144,7 +144,7 @@ OAI L2+
 NVIDIA Aerial L1
 
 ---
-
+---
 ## Figure 7. OAI 中 CU ↔ DU 的 F1 功能切分與協定堆疊
 
 ![Figure 7. OAI 中 CU ↔ DU 的 F1 功能切分與協定堆疊](images/07_F1_Functional_Split_and_Protocol_Stack.png)
