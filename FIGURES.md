@@ -120,30 +120,9 @@
 
 ---
 
-## Summary
 
-透過這些圖，我目前把整體學習脈絡整理成：
 
-```text
-5G RAN Architecture
-        ↓
-CU / DU / RU
-        ↓
-Control Plane / User Plane
-        ↓
-PRB / Radio Resources
-        ↓
-Downlink / Uplink Scheduling
-        ↓
-MAC Scheduler
-        ↓
-FAPI
-        ↓
-OAI L2+
-        ↓
-NVIDIA Aerial L1
 
----
 ---
 ## Figure 7. OAI 中 CU ↔ DU 的 F1 功能切分與協定堆疊
 
