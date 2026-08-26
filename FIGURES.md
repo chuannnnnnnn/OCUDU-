@@ -117,11 +117,21 @@
 | Figure 4 | Downlink Scheduling | Chapter 04 |
 | Figure 5 | Uplink Scheduling | Chapter 04 |
 | Figure 6 | OAI L2+ 與 NVIDIA Aerial L1 整合架構圖 | Chapter 05 |
+| Figure 7 | F1 Functional Split 與 Protocol Stack | Chapter 08 |
+| Figure 8 | UE Registration Flow：DU → CU → AMF | Chapter 08 |
 
 ---
 
 
 ## Figure 7. OAI 中 CU ↔ DU 的 F1 功能切分與協定堆疊
+
+## Figure 7 學習紀錄
+
+- **學習日期：** 2026/08/26
+- **投入時間：** 約 1.5 小時
+- **整理重點：** 將 CU / DU functional split、F1-C / F1-U protocol stack、F1 message、3GPP specification 與 OAI source code 放在同一張圖中整理。
+- **學到的內容：** 更清楚理解 F1 不只是一條 CU ↔ DU interface，而是包含不同的 Control Plane 與 User Plane protocol，也開始能從 interface 往下找到 specification 與 OAI implementation。
+
 
 ![Figure 7. OAI 中 CU ↔ DU 的 F1 功能切分與協定堆疊](images/07_F1_Functional_Split_and_Protocol_Stack.png)
 
@@ -218,16 +228,16 @@ F1AP Message
 OAI Source Code
 ```
 
-## Figure 7 學習紀錄
-
-- **學習日期：** 2026/08/26
-- **投入時間：** 約 1.5 小時
-- **整理重點：** 將 CU / DU functional split、F1-C / F1-U protocol stack、F1 message、3GPP specification 與 OAI source code 放在同一張圖中整理。
-- **學到的內容：** 更清楚理解 F1 不只是一條 CU ↔ DU interface，而是包含不同的 Control Plane 與 User Plane protocol，也開始能從 interface 往下找到 specification 與 OAI implementation。
-
 ---
 
 ## Figure 8. OAI 中 UE Registration Flow：從 DU 經 CU 到 AMF 的訊息
+
+## Figure 8 學習紀錄
+
+- **學習日期：** 2026/08/26
+- **投入時間：** 約 1.5 小時
+- **整理重點：** 將 UE Registration 前段流程拆成 RRC、F1AP、NGAP 與 NAS，並進一步對應 OAI source code 與 3GPP specification。
+- **學到的內容：** 更清楚理解 protocol stack 如何實際出現在 signaling flow 中，也開始能從 message 找到 specification，再從 specification 回到 OAI function 追蹤實作方式。
 
 ### Figure 8-1. UE Registration Signaling Flow
 
@@ -381,11 +391,5 @@ Function
 
 這也是目前我對「從程式去對應規格」的理解。
 
-## Figure 8 學習紀錄
-
-- **學習日期：** 2026/08/26
-- **投入時間：** 約 1.5 小時
-- **整理重點：** 將 UE Registration 前段流程拆成 RRC、F1AP、NGAP 與 NAS，並進一步對應 OAI source code 與 3GPP specification。
-- **學到的內容：** 更清楚理解 protocol stack 如何實際出現在 signaling flow 中，也開始能從 message 找到 specification，再從 specification 回到 OAI function 追蹤實作方式。
 
 ---
