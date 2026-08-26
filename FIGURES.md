@@ -147,14 +147,31 @@ NVIDIA Aerial L1
 
 ## Figure 7. OAI 中 CU ↔ DU 的 F1 功能切分與協定堆疊
 
-📄 [查看完整 PDF：OAI 中 CU ↔ DU 的 F1 功能切分與協定堆疊](pdf/07_F1_Functional_Split_and_Protocol_Stack.pdf)
+![Figure 7. OAI 中 CU ↔ DU 的 F1 功能切分與協定堆疊](images/07_F1_Functional_Split_and_Protocol_Stack.png)
 
-這張圖進一步整理 **gNB-CU 與 gNB-DU 之間的 F1 functional split**，並將 F1 拆成 `F1-C` 與 `F1-U` 兩條不同路徑。
+這張圖整理 **gNB-CU 與 gNB-DU 之間的 F1 functional split**，並進一步把 F1 拆成 `F1-C` 與 `F1-U` 兩條不同的路徑。
 
-其中：
+其中 CU 與 DU 的功能分工可以簡化成：
 
 ```text
-F1-C
+gNB-CU
+├── RRC
+├── PDCP
+└── SDAP
+     │
+     │ F1
+     ↓
+gNB-DU
+├── RLC
+├── MAC
+└── PHY
+```
+
+### F1-C：Control Plane
+
+F1-C 主要負責 CU 與 DU 之間的控制訊息。
+
+```text
 F1AP
  ↓
 SCTP
@@ -162,12 +179,20 @@ SCTP
 IP
 ```
 
-主要負責 CU 與 DU 之間的 Control Plane signaling。
+圖中整理的關鍵 F1 control messages 包括：
 
-而：
+- `F1 Setup Request / Response`
+- `Initial UL RRC Message Transfer`
+- `DL RRC Message Transfer`
+- `UL RRC Message Transfer`
+- `UE Context Setup Request / Response`
+- `UE Context Release Command`
+
+### F1-U：User Plane
+
+F1-U 主要負責 User Plane data transport。
 
 ```text
-F1-U
 GTP-U
  ↓
 UDP
@@ -175,19 +200,11 @@ UDP
 IP
 ```
 
-主要負責 CU-UP 與 DU 之間的 User Plane data transport。
-
-這張圖除了整理 protocol stack，也進一步加入 **F1AP message、OAI source code 與 3GPP specification** 的對應，讓我可以從原本的 architecture level 往 protocol 與 implementation level 繼續追蹤。
-
-### 對應規格
-
-- `3GPP TS 38.470`：F1 General Aspects and Principles
-- `3GPP TS 38.471`：F1 Layer 1
-- `3GPP TS 38.472`：F1 Signalling Transport
-- `3GPP TS 38.473`：F1 Application Protocol（F1AP）
-- `3GPP TS 38.474`：F1 Data Transport
+因此 F1 並不只是一條 CU ↔ DU 的連線，而是同時包含 Control Plane 與 User Plane，而且兩者使用的 protocol stack 不同。
 
 ### OAI Source Code 對應
+
+目前圖中整理的 OAI source code 包括：
 
 ```text
 F1AP_CU_task()
@@ -199,20 +216,50 @@ mac_rrc_ul_f1ap.c
 mac_rrc_dl_handler.c
 ```
 
-### Figure 7 學習紀錄
+這些程式可以再進一步往下追蹤，確認 OAI 如何實作 F1 message 的接收、處理與傳送。
+
+### 對應 3GPP 規格
+
+| Specification | Function |
+|---|---|
+| TS 38.470 | F1 General Aspects and Principles |
+| TS 38.471 | F1 Layer 1 |
+| TS 38.472 | F1 Signalling Transport |
+| TS 38.473 | F1 Application Protocol（F1AP） |
+| TS 38.474 | F1 Data Transport |
+
+因此目前我的閱讀方式是：
+
+```text
+F1 Interface
+     ↓
+Protocol Stack
+     ↓
+F1AP Message
+     ↓
+3GPP Specification
+     ↓
+OAI Source Code
+```
+
+## Figure 7 學習紀錄
 
 - **學習日期：** 2026/08/26
 - **投入時間：** 約 1.5 小時
-- **整理重點：** 將 CU / DU functional split、F1-C / F1-U protocol stack、3GPP F1 specification 與 OAI source code 放在同一個整理架構中。
-- **學到的內容：** 更清楚理解 F1 不只是一條 CU ↔ DU interface，而是包含 Control Plane 與 User Plane，且每一部分都有對應的 protocol、message 與 3GPP specification。
+- **整理重點：** 將 CU / DU functional split、F1-C / F1-U protocol stack、F1 message、3GPP specification 與 OAI source code 放在同一張圖中整理。
+- **學到的內容：** 更清楚理解 F1 不只是一條 CU ↔ DU interface，而是包含不同的 Control Plane 與 User Plane protocol，也開始能從 interface 往下找到 specification 與 OAI implementation。
 
 ---
 
 ## Figure 8. OAI 中 UE Registration Flow：從 DU 經 CU 到 AMF 的訊息
 
-📄 [查看完整 PDF：OAI 中 UE Registration Flow](pdf/08_UE_Registration_Flow.pdf)
+### Figure 8-1. UE Registration Signaling Flow
 
-這張圖進一步用 **UE Registration Flow** 驗證前面整理的 protocol stack，觀察一個 UE 建立連線時，訊息如何從：
+![Figure 8-1. OAI UE Registration Flow](images/08_UE_Registration_Flow.png)
+
+這張圖用一個實際的 **UE Registration Flow**，把前面分開理解的 RRC、F1AP、NGAP 與 NAS 串在一起。
+
+整體 signaling path 可以先整理成：
 
 ```text
 UE
@@ -224,71 +271,63 @@ gNB-CU-CP
 AMF
 ```
 
-依序經過不同的 protocol 與 interface。
-
-主要訊息流程整理如下：
+主要訊息流程如下：
 
 ```text
 ① RRCSetupRequest
 UE → gNB-DU
+[RRC]
 
 ② Initial UL RRC Message Transfer
 gNB-DU → gNB-CU-CP
+[F1AP]
 
 ③ DL RRC Message Transfer
 gNB-CU-CP → gNB-DU
+[F1AP + RRCSetup]
 
 ④ RRCSetup
 gNB-DU → UE
+[RRC]
 
 ⑤ RRCSetupComplete
 + NAS Registration Request
 UE → gNB-DU
+[RRC + NAS]
 
 ⑥ UL RRC Message Transfer
 gNB-DU → gNB-CU-CP
+[F1AP]
 
 ⑦ Initial UE Message
 gNB-CU-CP → AMF
+[NGAP]
 ```
 
-這條 signaling flow 同時會使用到：
+這張圖讓我看到：
 
 ```text
-RRC
- ↓
-F1AP
- ↓
-NGAP
- ↓
-NAS
+UE ↔ DU
+主要使用 RRC
+
+DU ↔ CU-CP
+主要透過 F1AP 傳遞 RRC message
+
+CU-CP ↔ AMF
+透過 NGAP 傳送 Initial UE Message
 ```
 
-因此這張圖的重點不只是 Registration message flow，而是進一步將：
+因此 protocol stack 不只是架構圖上的名稱，而是真的會出現在 UE 建立連線的 signaling flow 中。
 
-```text
-Message
-   ↓
-Protocol
-   ↓
-3GPP Specification
-   ↓
-OAI Source Code
-```
+---
 
-串在一起。
+### Figure 8-2. OAI Code Trace 與 3GPP Specification 對應
 
-### 對應規格
+![Figure 8-2. OAI Code Trace and 3GPP Specification](images/08_UE_Registration_Flow-2.png)
 
-- `3GPP TS 38.331`：RRC
-- `3GPP TS 38.473`：F1AP
-- `3GPP TS 38.472`：F1 Signalling Transport
-- `3GPP TS 38.413`：NGAP
-- `3GPP TS 24.501`：5G NAS
+這張圖進一步把 Figure 8-1 中的 signaling messages 對應到 **OAI source code** 與 **3GPP specification**。
 
-### OAI Source Code Trace
-
-Initial UL RRC Message Transfer：
+### Initial UL RRC Message Transfer
 
 ```text
 F1AP_DU_task()
@@ -300,7 +339,19 @@ cu_task_handle_sctp_data_ind()
 rrc_gNB_process_initial_ul_rrc_message()
 ```
 
-DL RRC Message Transfer：
+這一段主要是在觀察：
+
+```text
+DU 收到 UE RRC message
+        ↓
+透過 F1AP 傳給 CU
+        ↓
+CU 收到 F1 message
+        ↓
+交給 RRC processing
+```
+
+### DL RRC Message Transfer
 
 ```text
 F1AP_CU_task()
@@ -310,7 +361,9 @@ F1AP_DU_task()
 dl_rrc_message_transfer()
 ```
 
-UL RRC Message Transfer：
+這一段則是在觀察 CU 如何透過 F1AP 將 Downlink RRC message 傳回 DU。
+
+### UL RRC Message Transfer
 
 ```text
 F1AP_CU_task()
@@ -324,9 +377,39 @@ cu_task_handle_sctp_data_ind()
 rrc_gNB_decode_dcch()
 ```
 
-### Figure 8 學習紀錄
+這一段主要用來追蹤 UE 完成 RRC connection 後，後續 UL RRC message 如何經過 DU、F1AP 再送到 CU 處理。
+
+### Protocol / 3GPP Specification 對應
+
+| Protocol | 3GPP Specification |
+|---|---|
+| RRC | TS 38.331 |
+| F1AP | TS 38.473 |
+| F1 Signalling Transport | TS 38.472 |
+| NGAP | TS 38.413 |
+| 5G NAS | TS 24.501 |
+
+因此 Figure 8 可以進一步整理成：
+
+```text
+Signaling Message
+        ↓
+Protocol
+        ↓
+3GPP Specification
+        ↓
+OAI Source Code
+        ↓
+Function
+```
+
+這也是目前我對「從程式去對應規格」的理解。
+
+## Figure 8 學習紀錄
 
 - **學習日期：** 2026/08/26
 - **投入時間：** 約 1.5 小時
-- **整理重點：** 將 UE Registration 前段流程拆成 RRC、F1AP、NGAP 與 NAS，並進一步對應 3GPP specification 與 OAI source code。
-- **學到的內容：** 更清楚理解 protocol stack 不只是架構圖上的名稱，而是真的會出現在實際 signaling flow 中，也開始能從 message 找到 specification，再往 OAI function 進行 source code trace。
+- **整理重點：** 將 UE Registration 前段流程拆成 RRC、F1AP、NGAP 與 NAS，並進一步對應 OAI source code 與 3GPP specification。
+- **學到的內容：** 更清楚理解 protocol stack 如何實際出現在 signaling flow 中，也開始能從 message 找到 specification，再從 specification 回到 OAI function 追蹤實作方式。
+
+---
