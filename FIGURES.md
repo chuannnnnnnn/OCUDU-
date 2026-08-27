@@ -117,26 +117,21 @@
 - **整理重點：** 將 CU / DU functional split、F1-C / F1-U protocol stack、F1 message、3GPP specification 與 OAI source code 放在同一張圖中整理。
 - **學到的內容：** 更清楚理解 F1 不只是一條 CU ↔ DU interface，而是包含不同的 Control Plane 與 User Plane protocol，也開始能從 interface 往下找到 specification 與 OAI implementation。
 
+# Figure 07 — OAI 中 CU ↔ DU 的 F1 功能切分、協定堆疊與 Source Code Trace
 
-![Figure 7. OAI 中 CU ↔ DU 的 F1 功能切分與協定堆疊](images/07_F1_Functional_Split_and_Protocol_Stack.png)
+本組圖的目標是從 **gNB-CU / gNB-DU 功能切分**出發，進一步整理 **F1-C、F1-U 的 protocol stack**，並將重要的 F1 signaling message 對應到 OAI source code。
 
-這張圖整理 **gNB-CU 與 gNB-DU 之間的 F1 functional split**，並進一步把 F1 拆成 `F1-C` 與 `F1-U` 兩條不同的路徑。
+除了整理架構之外，也進一步從程式執行流程觀察 F1 訊息如何在 DU 與 CU 之間傳遞，並以 3GPP TS 38.470～38.474 作為 F1 interface 相關規格的閱讀依據。
 
-其中 CU 與 DU 的功能分工可以簡化成：
+---
 
-```text
-gNB-CU
-├── RRC
-├── PDCP
-└── SDAP
-     │
-     │ F1
-     ↓
-gNB-DU
-├── RLC
-├── MAC
-└── PHY
-```
+## Figure 07-A — F1 Functional Split & Protocol Stack
+
+![Figure 07-A — OAI 中 CU ↔ DU 的 F1 功能切分與協定堆疊](images/07_F1_Functional_Split_and_Protocol_Stack(1).png)
+
+### 圖片說明
+
+此圖將 gNB-CU 進一步區分為 **CU-CP** 與 **CU-UP**，並整理 CU 與 DU 之間的兩種主要 F1 路徑。
 
 ### F1-C：Control Plane
 
@@ -150,18 +145,9 @@ SCTP
 IP
 ```
 
-圖中整理的關鍵 F1 control messages 包括：
-
-- `F1 Setup Request / Response`
-- `Initial UL RRC Message Transfer`
-- `DL RRC Message Transfer`
-- `UL RRC Message Transfer`
-- `UE Context Setup Request / Response`
-- `UE Context Release Command`
-
 ### F1-U：User Plane
 
-F1-U 主要負責 User Plane data transport。
+F1-U 主要負責 CU-UP 與 DU 之間的 User Plane data transport。
 
 ```text
 GTP-U
@@ -171,46 +157,406 @@ UDP
 IP
 ```
 
-因此 F1 並不只是一條 CU ↔ DU 的連線，而是同時包含 Control Plane 與 User Plane，而且兩者使用的 protocol stack 不同。
-
-### OAI Source Code 對應
-
-目前圖中整理的 OAI source code 包括：
+### CU 與 DU 的功能分工
 
 ```text
-F1AP_CU_task()
-F1AP_DU_task()
-cu_task_handle_sctp_data_ind()
-du_task_handle_sctp_data_ind()
-mac_rrc_dl_f1ap.c
-mac_rrc_ul_f1ap.c
-mac_rrc_dl_handler.c
+gNB-CU
+├── CU-CP
+│   ├── RRC
+│   └── PDCP-C
+│
+└── CU-UP
+    ├── SDAP
+    └── PDCP-U
+
+        │
+        │ F1
+        ↓
+
+gNB-DU
+├── RLC
+├── MAC
+└── PHY
 ```
 
-這些程式可以再進一步往下追蹤，確認 OAI 如何實作 F1 message 的接收、處理與傳送。
+因此 F1 並不只是一條 CU ↔ DU 的連線，而是同時包含 Control Plane 與 User Plane，而且兩者使用的 protocol stack 不同。
 
-### 對應 3GPP 規格
+---
 
-| Specification | Function |
-|---|---|
-| TS 38.470 | F1 General Aspects and Principles |
-| TS 38.471 | F1 Layer 1 |
-| TS 38.472 | F1 Signalling Transport |
-| TS 38.473 | F1 Application Protocol（F1AP） |
-| TS 38.474 | F1 Data Transport |
+## 關鍵 F1 訊息
 
-因此目前我的閱讀方式是：
+圖中整理的主要 F1 signaling messages 包括：
+
+- `F1 Setup Request`
+- `F1 Setup Response`
+- `Initial UL RRC Message Transfer`
+- `UL RRC Message Transfer`
+- `DL RRC Message Transfer`
+- `UE Context Setup Request`
+- `UE Context Setup Response`
+- `UE Context Release Command`
+
+這些訊息可以作為後續從：
 
 ```text
-F1 Interface
-     ↓
-Protocol Stack
-     ↓
+3GPP Procedure
+      ↓
 F1AP Message
-     ↓
-3GPP Specification
-     ↓
+      ↓
 OAI Source Code
+```
+
+進行追蹤的入口。
+
+---
+
+## Figure 07-B — OAI F1 Source Code Trace
+
+![Figure 07-B — OAI F1 Source Code Trace](images/07_F1_Functional_Split_and_Protocol_Stack-1.png)
+
+### 圖片說明
+
+此圖進一步將 F1 signaling 對應到 **OAI source code 執行流程**，並分成 Uplink 與 Downlink 兩個方向觀察。
+
+---
+
+## UL：DU → CU
+
+Uplink 方向主要是在理解 DU 端產生的 RRC signaling，如何透過 F1-C 傳送到 CU。
+
+```text
+DU / MAC
+   ↓
+mac_rrc_ul_f1ap.c
+   ↓
+TASK_DU_F1
+F1AP_DU_task()
+   ↓
+ASN.1 Encode
+   ↓
+SCTP / F1-C
+   ↓
+TASK_CU_F1
+F1AP_CU_task()
+   ↓
+cu_task_handle_sctp_data_ind()
+   ↓
+F1AP_INITIAL_UL_RRC_MESSAGE
+   ↓
+TASK_RRC_GNB
+   ↓
+rrc_gNB_process_initial_ul_rrc_message()
+```
+
+### UL Flow 我的理解
+
+這條流程可以簡化成：
+
+```text
+DU / MAC
+   ↓
+產生 F1AP Message
+   ↓
+ASN.1 Encode
+   ↓
+SCTP Transport
+   ↓
+CU 收到 F1AP Message
+   ↓
+交給 RRC 處理
+```
+
+也就是 DU 並不是直接呼叫 CU 的 RRC function，而是先把訊息包成 F1AP message，再透過 SCTP / F1-C 傳送到 CU。
+
+---
+
+## DL：CU → DU
+
+Downlink 方向則是從 CU / RRC 開始，觀察 RRC signaling 如何經過 F1-C 傳送到 DU。
+
+```text
+CU / RRC
+   ↓
+mac_rrc_dl_f1ap.c
+   ↓
+TASK_CU_F1
+F1AP_CU_task()
+   ↓
+ASN.1 Encode
+   ↓
+SCTP / F1-C
+   ↓
+TASK_DU_F1
+F1AP_DU_task()
+   ↓
+du_task_handle_sctp_data_ind()
+   ↓
+mac_rrc_dl_handler.c
+   ↓
+dl_rrc_message_transfer()
+   ↓
+DU / MAC
+```
+
+### DL Flow 我的理解
+
+這條流程可以簡化成：
+
+```text
+CU / RRC
+   ↓
+產生 F1AP Message
+   ↓
+ASN.1 Encode
+   ↓
+SCTP Transport
+   ↓
+DU 收到 F1AP Message
+   ↓
+交給 DU / MAC 處理
+```
+
+因此 UL 與 DL 的核心概念都是：
+
+```text
+Source Module
+    ↓
+F1AP Message
+    ↓
+ASN.1 Encode
+    ↓
+SCTP / F1-C
+    ↓
+Destination Module
+```
+
+---
+
+## OAI Function 與 F1 Message 對應
+
+目前圖中整理到的部分 function / message 對應如下：
+
+| F1 Message | OAI Function |
+|---|---|
+| F1 Setup Request | `rrc_gNB_process_f1_setup_req()` |
+| Initial UL RRC Message Transfer | `rrc_gNB_process_initial_ul_rrc_message()` |
+| UL RRC Message Transfer | `rrc_gNB_decode_dcch()` |
+| UE Context Setup Response | `rrc_CU_process_ue_context_setup_response()` |
+| F1 Setup Response | `f1_setup_response()` |
+| DL RRC Message Transfer | `dl_rrc_message_transfer()` |
+| UE Context Setup Request | `ue_context_setup_request()` |
+| UE Context Release Command | `ue_context_release_command()` |
+
+這個表格的目的，是讓我不只知道 message 名稱，也開始嘗試找出：
+
+```text
+F1AP Message
+    ↓
+OAI Function
+    ↓
+Actual Processing
+```
+
+---
+
+## 3GPP Specification 對應
+
+本圖整理 F1 interface 時主要對應以下 3GPP specification：
+
+| Specification | 主要內容 |
+|---|---|
+| **3GPP TS 38.470** | F1 general aspects and principles |
+| **3GPP TS 38.471** | F1 layer 1 |
+| **3GPP TS 38.472** | F1 signalling transport |
+| **3GPP TS 38.473** | F1 Application Protocol（F1AP） |
+| **3GPP TS 38.474** | F1 data transport |
+
+因此可以依照不同問題去查不同規格。
+
+### 如果要看 F1 架構與基本原則
+
+```text
+3GPP TS 38.470
+```
+
+### 如果要看 F1 signalling transport
+
+```text
+3GPP TS 38.472
+```
+
+### 如果要看 F1AP message / procedure
+
+```text
+3GPP TS 38.473
+```
+
+### 如果要看 F1 user-plane data transport
+
+```text
+3GPP TS 38.474
+```
+
+---
+
+## 從規格到 OAI Source Code 的閱讀方式
+
+目前我把閱讀方法整理成：
+
+```text
+CU / DU Architecture
+        ↓
+F1 Interface
+        ↓
+F1-C / F1-U
+        ↓
+Protocol Stack
+        ↓
+F1AP Message / Procedure
+        ↓
+3GPP Specification
+        ↓
+OAI Source Code
+        ↓
+Function / Task Execution
+```
+
+例如：
+
+```text
+Initial UL RRC Message Transfer
+        ↓
+F1AP
+        ↓
+3GPP TS 38.473
+        ↓
+F1AP_DU_task()
+        ↓
+F1AP_CU_task()
+        ↓
+cu_task_handle_sctp_data_ind()
+        ↓
+rrc_gNB_process_initial_ul_rrc_message()
+```
+
+這樣就可以從一個規格中的 signaling procedure，一路追到 OAI source code 實際執行的 function。
+
+---
+
+## 我的理解
+
+透過這兩張圖，我不只想確認 **CU 與 DU 之間有哪些介面**，而是進一步理解介面內部實際使用哪些 protocol，以及 OAI 如何透過程式完成這些 protocol 所定義的功能。
+
+以 F1-C 為例，可以整理成：
+
+```text
+3GPP F1AP Procedure
+        ↓
+F1AP Message
+        ↓
+OAI F1AP Task
+        ↓
+ASN.1 Encode / Decode
+        ↓
+SCTP Transport
+        ↓
+CU / DU Handler
+        ↓
+RRC / MAC Processing
+```
+
+因此後續閱讀 OAI source code 時，我希望不只是記住 function 名稱，而是能回答：
+
+1. **這個 function 在哪一個 protocol procedure 中被使用？**
+2. **它是在處理哪一個 F1AP message？**
+3. **這個 message 是在哪一份 3GPP specification 中定義？**
+4. **這段程式如何完成 specification 所要求的功能？**
+
+這也是我從單純閱讀 architecture，進一步往 **Protocol → Specification → Source Code** 對應的學習方式。
+
+---
+
+## Figure 07 學習紀錄
+
+- **學習日期：** 2026/08/27
+- **投入時間：** 約 2 小時
+- **主要閱讀內容：** F1 Functional Split、F1-C / F1-U Protocol Stack、F1AP Messages、OAI F1 Source Code、3GPP TS 38.470～38.474
+- **整理重點：** 將 CU / DU 架構、F1 protocol stack、F1AP message、3GPP specification 與 OAI source code 串在一起。
+- **學到的內容：** 更清楚理解 F1 interface 不只是 CU ↔ DU 的一條連線，而是包含不同 protocol、signaling procedure 與實際 source code implementation。
+- **Source Trace Target：** `F1AP Message → SCTP → CU / DU Task → RRC / MAC Handler`
+
+---
+
+## Next Step
+
+下一步可以從其中一個具體的 F1AP procedure 繼續往下追。
+
+例如：
+
+```text
+Initial UL RRC Message Transfer
+        ↓
+3GPP TS 38.473
+        ↓
+確認 message IE
+        ↓
+OAI ASN.1 structure
+        ↓
+F1AP_DU_task()
+        ↓
+F1AP_CU_task()
+        ↓
+RRC processing
+```
+
+這樣可以進一步確認：
+
+```text
+Specification
+      ↓
+Message Format
+      ↓
+Source Code Structure
+      ↓
+Runtime Behavior
+```
+
+之間的完整對應關係。
+
+---
+
+## References
+
+### 3GPP F1 Specifications
+
+- **3GPP TS 38.470** — F1 General Aspects and Principles
+- **3GPP TS 38.471** — F1 Layer 1
+- **3GPP TS 38.472** — F1 Signalling Transport
+- **3GPP TS 38.473** — F1 Application Protocol（F1AP）
+- **3GPP TS 38.474** — F1 Data Transport
+
+### OAI Source Code
+
+```text
+mac_rrc_ul_f1ap.c
+mac_rrc_dl_f1ap.c
+mac_rrc_dl_handler.c
+
+F1AP_DU_task()
+F1AP_CU_task()
+
+cu_task_handle_sctp_data_ind()
+du_task_handle_sctp_data_ind()
+
+rrc_gNB_process_f1_setup_req()
+rrc_gNB_process_initial_ul_rrc_message()
+rrc_gNB_decode_dcch()
+rrc_CU_process_ue_context_setup_response()
+
+f1_setup_response()
+dl_rrc_message_transfer()
+ue_context_setup_request()
+ue_context_release_command()
 ```
 
 ---
