@@ -127,7 +127,7 @@
 
 ## Figure 07-A — F1 Functional Split & Protocol Stack
 
-![Figure 07-A — OAI 中 CU ↔ DU 的 F1 功能切分與協定堆疊](images/07_F1_Functional_Split_and_Protocol_Stack(1).png)
+![Figure 07-A — OAI 中 CU ↔ DU 的 F1 功能切分與協定堆疊](images/07_F1_Functional_Split_and_Protocol_Stack.png)
 
 ### 圖片說明
 
