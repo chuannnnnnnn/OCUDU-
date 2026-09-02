@@ -872,20 +872,719 @@ OAI Source Code
 
 ---
 
-## Figure 6. OAI L2+ 與 NVIDIA Aerial L1 整合架構圖
+# Figure 06. OAI + NVIDIA Aerial L1 Integration Architecture
 
-![Figure 6. OAI L2+ 與 NVIDIA Aerial L1 整合架構圖](images/06_OAI_Aerial_Integration.PNG)
+![Figure 06. OAI + NVIDIA Aerial L1 Integration Architecture](images/06_OAI_Aerial_Integration.png)
 
-這張圖整理了我目前對 **OAI L2+ 與 NVIDIA Aerial L1 整合架構**的理解。  
-在這個架構中，OAI 主要負責 **RRC、PDCP / SDAP、RLC 與 MAC Scheduler**，並透過 **SCF FAPI over nvIPC** 與 Aerial L1 溝通；Aerial L1 則透過 **L2 Adapter、cuPHY Driver、cuPHY 與 GPU** 執行實際的 PHY processing，最後再透過 fronthaul 連接 **O-RU**。  
-這張圖對應筆記中的 **Chapter 05：OAI L2 + NVIDIA Aerial L1**。
+**圖表類型：** System Integration Diagram  
+**研究主題：** OAI Higher Layers / MAC 與 NVIDIA Aerial L1 整合  
+**對應章節：** Chapter 05 — OAI Higher Layers + NVIDIA Aerial L1  
+**初版日期：** 2026/08/25  
+**最後更新：** 2026/09/02  
 
-## Figure 6 學習紀錄
+---
 
-- **學習日期：** 2026/08/25
-- **投入時間：** 約 45 分鐘
-- **修正重點：** 重新整理 OAI L2+ 與 NVIDIA Aerial L1 的模組分工，以及 `FAPI`、`nvIPC`、L2 Adapter、cuPHY Driver、cuPHY、GPU 與 O-RU 的關係。
-- **學到的內容：** 更清楚理解 OAI 保留上層 protocol 與 MAC Scheduler，而 Aerial L1 負責 GPU 加速的 PHY processing。
+## 圖片定位
+
+Figure 06 用來整理 OAI higher-layer protocol / MAC 與 NVIDIA Aerial L1 之間的 integration architecture。
+
+本圖主要回答：
+
+1. OAI 與 NVIDIA Aerial 的 integration boundary 在哪裡？
+2. FAPI 與 nvIPC 各自扮演什麼角色？
+3. NVIDIA Aerial L1 內部主要包含哪些 software components？
+4. GPU-accelerated PHY processing 如何進一步連接 O-RU？
+5. OAI MAC Scheduler 是否會被 NVIDIA Aerial L1 取代？
+
+本圖定位為 **System Integration Diagram**，主要描述 software component 與 interface relationship，而不是完整的 protocol stack diagram。
+
+---
+
+## Overall Architecture
+
+Figure 06 的主要 integration path 可以整理為：
+
+```text
+OAI gNB Higher Layers + MAC
+            ↓
+         SCF FAPI
+            ↓
+          nvIPC
+            ↓
+     NVIDIA Aerial L1
+            ↓
+      FH Driver / NIC
+            ↓
+ O-RAN Open Fronthaul
+            ↓
+           O-RU
+            ↓
+            UE
+```
+
+其中 OAI 與 NVIDIA Aerial 的主要 integration boundary 位於：
+
+```text
+MAC
+ ↕
+PHY
+```
+
+也就是 L2 / L1 boundary。
+
+---
+
+## OAI Higher Layers / MAC
+
+OAI 端主要保留：
+
+```text
+RRC
+ ↓
+PDCP / SDAP
+ ↓
+RLC
+ ↓
+MAC / Scheduler
+```
+
+主要負責：
+
+- RRC / PDCP / SDAP / RLC
+- MAC Scheduler
+- Scheduling decision
+- Radio resource allocation
+- 產生 FAPI requests
+- 接收 Layer 1 indications
+
+因此 NVIDIA Aerial L1 並不是重新執行 MAC scheduling。
+
+可以簡化成：
+
+```text
+OAI
+↓
+Decide what should be transmitted
+```
+
+---
+
+## SCF FAPI
+
+OAI MAC 與 NVIDIA Aerial L1 之間使用 SCF FAPI 作為 MAC-PHY message interface。
+
+概念：
+
+```text
+OAI MAC
+   │
+   │ SCF FAPI
+   ▼
+Layer 1
+```
+
+FAPI 的角色可以理解為：
+
+```text
+FAPI
+=
+What information is exchanged
+between L2 / MAC and L1 / PHY
+```
+
+例如 MAC → PHY 的 request：
+
+```text
+DL_TTI.request
+UL_TTI.request
+TX_DATA.request
+```
+
+以及 PHY → MAC 的 indication：
+
+```text
+SLOT.indication
+RX_DATA.indication
+CRC.indication
+UCI.indication
+```
+
+因此 Figure 06 不再將：
+
+```text
+SCF FAPI over nvIPC
+```
+
+視為單一 protocol 名稱，而是將 FAPI 與 nvIPC 分成不同角色。
+
+---
+
+## nvIPC
+
+nvIPC 負責 L2 / L1 之間的 message 與 data transport。
+
+概念：
+
+```text
+SCF FAPI
+    ↓
+  nvIPC
+    ↓
+Aerial L2 Adapter
+```
+
+可以簡化為：
+
+```text
+FAPI
+=
+Message interface / semantics
+```
+
+```text
+nvIPC
+=
+Message / data transport
+```
+
+因此 FAPI 與 nvIPC 屬於不同層次的概念。
+
+---
+
+## NVIDIA Aerial L1
+
+Figure 06 中 NVIDIA Aerial L1 主要整理成：
+
+```text
+           cuPHY Controller
+                  ⋮
+          L1 Initialization /
+            Runtime Control
+
+L2 Adapter → cuPHY Driver → cuPHY
+                              CUDA / GPU
+                  │
+                  ↓
+           FH Driver / NIC
+```
+
+---
+
+### L2 Adapter
+
+L2 Adapter 主要負責將 Layer 2 傳來的 FAPI commands 轉換成 Layer 1 可以執行的 tasks。
+
+```text
+FAPI Command
+     ↓
+L2 Adapter
+     ↓
+  L1 Task
+```
+
+---
+
+### cuPHY Driver
+
+cuPHY Driver 主要負責 Aerial L1 runtime orchestration，包括 GPU 與 fronthaul processing 的協調。
+
+概念：
+
+```text
+L2 Adapter
+     ↓
+cuPHY Driver
+    /    \
+   ↓      ↓
+cuPHY   Fronthaul
+```
+
+---
+
+### cuPHY / CUDA / GPU
+
+cuPHY 負責實際的 GPU-accelerated PHY processing。
+
+概念：
+
+```text
+PHY Task
+   ↓
+cuPHY
+   ↓
+CUDA / GPU
+   ↓
+PHY Processing
+```
+
+因此圖中將：
+
+```text
+cuPHY
+CUDA / GPU
+```
+
+放在同一個 functional block 中，表示 cuPHY 利用 CUDA / NVIDIA GPU 執行 PHY workload，而不是把 CUDA / GPU 視為另一個獨立的 Aerial software module。
+
+---
+
+### cuPHY Controller
+
+cuPHY Controller 主要負責 L1 initialization 與 runtime control。
+
+Figure 06 使用虛線表示：
+
+```text
+cuPHY Controller
+       ⋮
+       ⋮ L1 Initialization /
+       ⋮ Runtime Control
+       ▼
+Aerial L1 Runtime
+```
+
+這條虛線不是主要的 FAPI data processing path。
+
+因此要和：
+
+```text
+L2 Adapter
+    ↓
+cuPHY Driver
+    ↓
+cuPHY
+```
+
+的主要 processing path 分開理解。
+
+---
+
+### FH Driver / NIC
+
+FH Driver / NIC 位於 Aerial L1 與 O-RU 之間。
+
+概念：
+
+```text
+Aerial L1
+    ↓
+FH Driver / NIC
+    ↓
+O-RAN Open Fronthaul
+    ↓
+O-RU
+```
+
+其角色主要是支援 fronthaul packet transmission / reception，連接 Aerial L1 與 O-RU。
+
+---
+
+## O-RAN Open Fronthaul
+
+FAPI 與 O-RAN Open Fronthaul 是兩個不同位置的 interface。
+
+```text
+OAI MAC
+   │
+   │ FAPI
+   ▼
+Aerial L1
+   │
+   │ O-RAN Open Fronthaul
+   ▼
+ O-RU
+```
+
+因此：
+
+```text
+FAPI
+=
+MAC ↔ PHY
+```
+
+而：
+
+```text
+O-RAN Open Fronthaul
+=
+Aerial / O-DU side ↔ O-RU
+```
+
+在 Figure 06 的 Aerial / O-RAN context 中，O-RU 可以簡化標示為：
+
+```text
+O-RU
+Low-PHY / RF
+```
+
+這是特定 O-RAN lower-layer split context，不代表所有 gNB implementation 都採用完全相同的 DU / RU split。
+
+---
+
+# Verification & References
+
+Figure 06 的內容主要使用 NVIDIA Aerial 官方文件、Small Cell Forum FAPI 文件與 OAI official source code 進行核實。
+
+---
+
+## 1. NVIDIA Aerial — Software Architecture
+
+- [NVIDIA Aerial — Overview](https://docs.nvidia.com/aerial/aerial-cuphy/current/text/overview.html)
+- **Document Type：** NVIDIA Official Documentation
+- **Checked Date：** 2026/09/02
+
+### 用於核實
+
+主要用於確認：
+
+- NVIDIA Aerial L1 software architecture
+- L2 Adapter
+- cuPHY Driver
+- cuPHY
+- cuPHY Controller
+- nvIPC
+- O-RU / Low-PHY relationship
+
+---
+
+## 2. NVIDIA Aerial — L2 Adapter / cuPHY Driver
+
+- [NVIDIA Aerial — L2 Adapter](https://docs.nvidia.com/aerial/aerial-cuphy/current/text/l2_adapter.html)
+- **Document Type：** NVIDIA Official Documentation
+- **Checked Date：** 2026/09/02
+
+### 用於核實
+
+主要確認：
+
+```text
+SCF FAPI
+   ↓
+L2 Adapter
+   ↓
+L1 Task
+   ↓
+cuPHY Driver
+```
+
+以及：
+
+- nvIPC message / data transport
+- cuPHY Driver GPU orchestration
+- Fronthaul processing
+- Layer 1 indication path
+
+---
+
+## 3. Small Cell Forum — FAPI
+
+- [Small Cell Forum — 5G FAPI Standard](https://www.smallcellforum.org/technology/5g-fapi-standard/)
+- **Specification Family：** SCF FAPI
+- **Reference Document：** SCF222 — 5G FAPI PHY API
+- **Checked Date：** 2026/09/02
+- **Exact Edition：** `待實際下載閱讀後填入`
+
+### 用於核實
+
+主要確認：
+
+```text
+MAC / Higher Layer
+        ↕
+       FAPI
+        ↕
+       PHY
+```
+
+以及 FAPI 在 MAC-PHY boundary 的 interface 定位。
+
+---
+
+## 4. OpenAirInterface Source Code
+
+- [OpenAirInterface5G — Official Repository](https://gitlab.eurecom.fr/oai/openairinterface5g)
+- **Repository：** `openairinterface5g`
+- **Branch：** `develop`
+- **Commit SHA：** `待實際 checkout / source trace 後填入`
+- **Checked Date：** `待實際 source trace 後填入`
+
+### 用於核實
+
+後續主要確認：
+
+```text
+OAI MAC Scheduler
+        ↓
+FAPI Structures
+        ↓
+Southbound Interface
+        ↓
+External / Aerial L1
+```
+
+並 trace：
+
+- FAPI request generation
+- FAPI data structures
+- MAC scheduling output
+- Aerial southbound integration
+- nvIPC-related source code
+
+由於 `develop` branch 會持續更新，因此後續 source code verification 需要使用實際 commit SHA 固定研究版本。
+
+---
+
+# Verification Status
+
+| 內容 | Verification Status | 主要來源 |
+|---|---|---|
+| FAPI 位於 MAC-PHY interface | Verified | Small Cell Forum |
+| FAPI 與 nvIPC 角色不同 | Verified | NVIDIA Aerial documentation |
+| L2 Adapter role | Verified | NVIDIA Aerial documentation |
+| cuPHY Driver role | Verified | NVIDIA Aerial documentation |
+| cuPHY / GPU PHY processing | Verified | NVIDIA Aerial documentation |
+| cuPHY Controller initialization / runtime role | Verified | NVIDIA Aerial documentation |
+| FH Driver / NIC 與 O-RU relationship | Verified in Aerial context | NVIDIA Aerial documentation |
+| OAI MAC 保留 scheduling functionality | Architecture-level verified | OAI architecture / source study |
+| OAI specific Aerial source-code path | Pending source trace | OAI source code |
+| OAI ↔ Aerial exact FAPI compatibility | Pending runtime / version verification | OAI + NVIDIA environment |
+
+---
+
+# Research Conclusion
+
+經過 Figure 06 的重新整理與官方資料核實，目前可以得到以下結論。
+
+### 1. OAI 與 NVIDIA Aerial 的主要 integration boundary 位於 MAC–PHY interface
+
+```text
+OAI Higher Layers / MAC
+          ↓
+        FAPI
+          ↓
+ NVIDIA Aerial L1
+```
+
+OAI 保留 higher-layer protocol 與 MAC scheduling functionality。
+
+---
+
+### 2. FAPI 與 nvIPC 是不同層次的技術
+
+```text
+FAPI
+=
+Defines what L2/L1 information is exchanged
+```
+
+而：
+
+```text
+nvIPC
+=
+Transports message and data
+```
+
+因此不能單純把兩者當成同一個 protocol。
+
+---
+
+### 3. NVIDIA Aerial L1 不取代 OAI MAC Scheduler
+
+OAI 負責：
+
+```text
+Scheduling
+Resource Allocation
+MCS
+HARQ-related decision
+Time / Frequency Allocation
+```
+
+Aerial L1 則負責：
+
+```text
+Receive L1 task
+      ↓
+PHY Processing
+      ↓
+GPU Execution
+      ↓
+Fronthaul
+```
+
+因此兩者的核心分工可以整理為：
+
+```text
+OAI
+↓
+Protocol + Scheduling
+```
+
+```text
+NVIDIA Aerial
+↓
+GPU-Accelerated PHY
+```
+
+---
+
+### 4. Aerial integration 不只包含 GPU processing
+
+完整的 integration path 是：
+
+```text
+OAI MAC
+   ↓
+FAPI
+   ↓
+nvIPC
+   ↓
+L2 Adapter
+   ↓
+cuPHY Driver
+   ↓
+cuPHY / GPU
+   ↓
+FH Driver / NIC
+   ↓
+O-RAN Fronthaul
+   ↓
+O-RU
+```
+
+因此系統效能不只取決於 GPU kernel，也會受到 IPC、data movement、fronthaul 與 radio timing 影響。
+
+---
+
+### 5. 使用相同 FAPI 不代表 OAI 與 Aerial 一定直接相容
+
+實際 integration 還需要確認：
+
+```text
+FAPI Version
++
+PDU Definition
++
+Software Version
++
+OAI Commit
++
+Aerial SDK Version
++
+Runtime Configuration
+```
+
+因此 Figure 06 目前建立的是 **architecture-level integration understanding**。
+
+真正完成 implementation verification，仍需要進一步進行 source code trace 與 runtime test。
+
+---
+
+# Figure 06 學習紀錄
+
+- **初次學習日期：** 2026/08/25
+- **本次更新日期：** 2026/09/02
+- **初次投入時間：** 約 45 分鐘
+- **圖表類型：** System Integration Diagram
+- **主要整理內容：**
+  - OAI Higher Layers / MAC
+  - SCF FAPI
+  - nvIPC
+  - NVIDIA L2 Adapter
+  - cuPHY Driver
+  - cuPHY / CUDA / GPU
+  - cuPHY Controller
+  - FH Driver / NIC
+  - O-RAN Open Fronthaul
+  - O-RU
+- **本次修正重點：**
+  - 將 `OAI L2+` 修正為 `OAI gNB Higher Layers + MAC`
+  - 將 `SCF FAPI over nvIPC` 拆成 FAPI 與 nvIPC 兩個不同角色
+  - 新增 cuPHY Controller
+  - 將 Controller 的箭頭改成 `L1 Initialization / Runtime Control`
+  - 將 L2 Adapter、cuPHY Driver、cuPHY 拆成不同 functional blocks
+  - 將 cuPHY 與 CUDA / GPU 放在同一個 PHY processing block 中
+  - 將 `FH / NIC` 修正為 `FH Driver / NIC`
+  - 明確標示 O-RAN Open Fronthaul C/U-Plane
+  - 加入官方 documentation、source code reference 與 verification status
+  - 加入明確 research conclusion
+
+---
+
+# Version Information
+
+## NVIDIA Aerial
+
+- **Documentation：** NVIDIA Aerial current documentation
+- **Checked Date：** 2026/09/02
+- **Exact SDK Version：** `待實際安裝 / 測試後填入`
+
+## Small Cell Forum FAPI
+
+- **Reference：** SCF222 — 5G FAPI PHY API
+- **Exact Edition：** `待實際下載閱讀後填入`
+- **Checked Date：** 2026/09/02
+
+## OpenAirInterface
+
+- **Repository：** `openairinterface5g`
+- **Branch：** `develop`
+- **Commit SHA：** `待實際 checkout 後填入`
+- **Checked Date：** `待 source trace 後填入`
+
+---
+
+# Update History
+
+| Date | Version | Update |
+|---|---|---|
+| 2026/08/25 | v0.1 | 建立原始 OAI L2+ + NVIDIA Aerial L1 integration figure |
+| 2026/09/02 | v0.2 | 將 Figure 06 定位為 System Integration Diagram |
+| 2026/09/02 | v0.3 | 將 FAPI 與 nvIPC 分開表示 |
+| 2026/09/02 | v0.4 | 新增 cuPHY Controller 與 L1 Initialization / Runtime Control |
+| 2026/09/02 | v0.5 | 拆分 L2 Adapter、cuPHY Driver、cuPHY functional blocks |
+| 2026/09/02 | v0.6 | 加入 FH Driver / NIC、O-RAN Open Fronthaul 與 O-RU |
+| 2026/09/02 | v0.7 | 加入 official references、verification status、version information 與 research conclusion |
+
+---
+
+# Next Step
+
+Figure 06 目前已經完成 architecture-level integration 整理。
+
+下一階段需要進入：
+
+```text
+Architecture
+    ↓
+Official Documentation
+    ↓
+OAI Source Code
+    ↓
+FAPI Structure
+    ↓
+Function Call
+    ↓
+Aerial Integration
+    ↓
+Runtime Verification
+```
+
+後續將固定 OAI commit，實際追蹤：
+
+```text
+MAC Scheduler
+    ↓
+FAPI Request
+    ↓
+Southbound Interface
+    ↓
+Aerial / nvIPC
+```
+
+並透過 build、runtime log 與 message trace，驗證 Figure 06 所整理的 integration path。
 
 ---
 
