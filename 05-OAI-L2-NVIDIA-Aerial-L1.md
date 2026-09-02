@@ -217,7 +217,7 @@ O-RU
 
 # 5.3 Figure 06 — OAI + NVIDIA Aerial Integration Architecture
 
-![OAI + NVIDIA Aerial Integration Architecture](images/06_OAI_Aerial_Integration.PNG)
+![OAI + NVIDIA Aerial Integration Architecture](images/06_OAI_Aerial_Integration.png)
 
 ## Figure Type
 
