@@ -15,33 +15,47 @@
 **初版日期：** 2026/08/25  
 **最後更新：** 2026/09/02  
 
+---
+
 ## 本圖目的
 
-Figure 01 主要用來建立 **5G RAN 的系統層級架構概念**，並進一步說明這套 functional architecture 與 OCUDU / OAI open-source implementation 之間的關係。
+Figure 01 主要用來建立 **5G RAN 的 system-level functional architecture**，並進一步整理此 functional architecture 與 OCUDU / OAI open-source implementation 之間的關係。
 
-這組圖主要回答兩個問題：
+本圖主要回答兩個問題：
 
 1. **CU-CP、CU-UP、DU、RU 在 5G RAN 中位於什麼位置，彼此如何連接？**
 2. **OCUDU 與 OAI 如何對應到共同的 5G RAN functional architecture？**
 
-因此 Figure 01 分成：
+因此 Figure 01 分為：
 
 - **Figure 01-A：CU-CP / CU-UP / DU / RU Functional Components**
 - **Figure 01-B：5G RAN Functional Architecture 與 OCUDU / OAI Implementation Mapping**
 
-Figure 01 的定位是 **System Block Diagram**，主要呈現 functional components 與 interface relationship。
+Figure 01 的定位為 **System Block Diagram**。
 
-F1-C、F1-U 等 interface 內部實際使用的 protocol stack，以及 OAI source code implementation，則另外於 Figure 07 分析。
+本圖主要呈現：
+
+```text
+Functional Component
+        ↓
+Functional Split
+        ↓
+Interface Relationship
+```
+
+F1-C、F1-U 等 interface 上實際執行的 protocol stack，以及對應的 OAI source code implementation，另外於 Figure 07 進行分析。
 
 ---
 
-## Figure 01-A. CU-CP / CU-UP / DU / RU Functional Components
+# Figure 01-A. CU-CP / CU-UP / DU / RU Functional Components
 
 ![Figure 01-A. CU-CP / CU-UP / DU / RU Functional Components](images/01_CU_DU_RU_Architecture.PNG)
 
-### 圖片定位
+## 圖片定位
 
-Figure 01-A 用來建立 5G RAN 中主要 functional components 的基本關係，包括：
+Figure 01-A 用來建立 5G RAN 中主要 functional components 的基本關係。
+
+圖中主要包含：
 
 - AMF
 - UPF
@@ -51,7 +65,7 @@ Figure 01-A 用來建立 5G RAN 中主要 functional components 的基本關係�
 - RU
 - UE
 
-以及：
+以及主要 interface：
 
 - N2
 - N3
@@ -59,9 +73,7 @@ Figure 01-A 用來建立 5G RAN 中主要 functional components 的基本關係�
 - F1-C
 - F1-U
 
-等主要 interface 的位置。
-
-這張圖的目的不是完整呈現 protocol stack，而是先確認：
+本圖的目的不是完整呈現 protocol stack，而是先建立 system-level architecture：
 
 ```text
 5G Core
@@ -70,16 +82,14 @@ CU-CP / CU-UP
    ↓
 DU
    ↓
-RU
+Radio Side
    ↓
 UE
 ```
 
-在整體系統中的位置與功能關係。
-
 ---
 
-### CU-CP
+## CU-CP
 
 CU-CP（Central Unit — Control Plane）主要處理 Control Plane 相關功能。
 
@@ -88,15 +98,27 @@ CU-CP（Central Unit — Control Plane）主要處理 Control Plane 相關功能
 - RRC
 - Control-plane PDCP
 - Control signaling
-- Mobility related control
+- Mobility-related control
 
-CU-CP 透過 N2 與 5G Core 的 AMF 連接，並透過 F1-C 與 DU 進行 Control Plane communication。
+在 system-level architecture 中：
+
+```text
+AMF
+ │
+ N2
+ │
+CU-CP
+```
+
+CU-CP 透過 N2 與 5G Core 的 AMF 連接。
+
+CU-CP 與 DU 之間則透過 F1-C 建立 Control Plane communication。
 
 ---
 
-### CU-UP
+## CU-UP
 
-CU-UP（Central Unit — User Plane）主要負責 User Plane 相關功能。
+CU-UP（Central Unit — User Plane）主要處理 User Plane 相關功能。
 
 目前整理的主要功能包括：
 
@@ -104,31 +126,73 @@ CU-UP（Central Unit — User Plane）主要負責 User Plane 相關功能。
 - User-plane PDCP
 - User data processing
 
-CU-UP 透過 N3 與 UPF 連接，並透過 F1-U 與 DU 進行 User Plane data transmission。
+在 system-level architecture 中：
+
+```text
+UPF
+ │
+ N3
+ │
+CU-UP
+```
+
+CU-UP 透過 N3 與 UPF 連接。
+
+CU-UP 與 DU 之間則透過 F1-U 進行 User Plane data transmission。
 
 ---
 
-### DU
+## CU-CP 與 CU-UP
+
+CU-CP 與 CU-UP 分別處理 Control Plane 與 User Plane 相關功能。
+
+兩者之間透過：
+
+```text
+CU-CP
+  │
+  E1
+  │
+CU-UP
+```
+
+建立 E1 interface。
+
+因此可以先從 system-level 將 CU 理解為：
+
+```text
+        gNB-CU
+       /      \
+   CU-CP      CU-UP
+```
+
+但實際 protocol stack 與 software implementation 仍需要進一步從 specification 與 source code 確認。
+
+---
+
+## DU
 
 DU（Distributed Unit）位於 CU 與 radio side 之間。
 
-目前 Figure 01 主要用來建立 DU 與：
+Figure 01 目前主要建立：
 
 ```text
 CU
-↓
+ ↓
 DU
-↓
-Radio side
+ ↓
+Radio Side
 ```
 
 之間的 functional relationship。
 
-更詳細的 PHY functional split 與 fronthaul architecture 需要依照實際 deployment architecture 另外分析，因此 Figure 01 不將所有 DU / RU implementation 視為完全相同。
+Figure 01 不將所有 DU / RU deployment 視為完全相同的 implementation。
+
+特別是 PHY functional split、DU-low、RU 與 fronthaul 的實際配置，會受到所採用的 architecture 與 implementation 影響，因此需要另外使用相對應的 specification 進行核實。
 
 ---
 
-### Figure 01-A 的限制
+## Figure 01-A 的限制
 
 Figure 01-A 中的：
 
@@ -140,9 +204,9 @@ F1-C
 F1-U
 ```
 
-主要表示 **interface 的位置**。
+主要表示 **interface 的位置與 functional relationship**。
 
-這並不代表 Figure 01 已經完整說明這些 interface 上實際執行的 protocol。
+這並不代表 Figure 01-A 已經完整描述這些 interface 上實際執行的 protocol。
 
 例如：
 
@@ -154,35 +218,33 @@ CU-CP
  DU
 ```
 
-只能先說明 CU-CP 與 DU 之間存在 F1-C Control Plane interface。
+目前只能先確認 CU-CP 與 DU 之間存在 F1 Control Plane interface。
 
 如果要進一步回答：
 
-> F1-C 上實際使用什麼 protocol？
+> F1-C 上實際使用哪些 protocol？
 
-則需要繼續進入：
+則需要繼續往下一層分析：
 
 ```text
 F1-C
- ↓
-F1AP
- ↓
-Signalling Transport
- ↓
+  ↓
+Protocol
+  ↓
 3GPP Specification
- ↓
+  ↓
 OAI Source Code
 ```
 
-這部分另外於 Figure 07 分析。
+這部分另外於 Figure 07 進行分析。
 
 ---
 
-## Figure 01-B. 5G RAN Functional Architecture 與 OCUDU / OAI Implementation Mapping
+# Figure 01-B. 5G RAN Functional Architecture 與 OCUDU / OAI Implementation Mapping
 
 ![Figure 01-B. 5G RAN Functional Architecture 與 OCUDU / OAI Implementation Mapping](images/01_5G_RAN_Functional_Architecture_OCUDU_OAI.png)
 
-### 圖片定位
+## 圖片定位
 
 Figure 01-B 延續 Figure 01-A 的 system-level architecture，但研究問題不同。
 
@@ -198,9 +260,9 @@ Figure 01-B 則進一步回答：
 
 ---
 
-### Common Functional Architecture
+## Common Functional Architecture
 
-圖左側先建立 5G RAN 的主要 functional components 與 interface：
+Figure 01-B 左側先建立 5G RAN 的主要 functional components 與 interface：
 
 ```text
 AMF                       UPF
@@ -222,9 +284,9 @@ F1-C                      F1-U
             UE
 ```
 
-這一部分的目的，是建立 system-level reference。
+這一部分的目的，是建立一個 system-level reference。
 
-也就是先確認：
+也就是先理解：
 
 ```text
 Core Network
@@ -242,9 +304,9 @@ UE
 
 ---
 
-### OCUDU / OAI Implementation Mapping
+## OCUDU / OAI Implementation Mapping
 
-圖右側則將 **functional architecture** 與 **open-source software implementation** 分開表示：
+Figure 01-B 右側則將 **functional architecture** 與 **open-source software implementation** 分開表示：
 
 ```text
 3GPP NG-RAN
@@ -263,14 +325,15 @@ CU-CP / CU-UP / DU
 OCUDU = OAI
 ```
 
-而是將共同的 5G RAN functional architecture 作為研究兩種 implementation 的 reference。
+而是使用共同的 5G RAN functional architecture 作為研究兩種 implementation 的 reference。
 
-因此目前將兩者的關係整理成：
+目前將兩者的關係整理為：
 
 > **Common functional architecture, different implementations.**
 
 也就是說，OCUDU 與 OAI 可以從共同的：
 
+- Functional architecture
 - Functional split
 - Interface
 - Protocol
@@ -290,154 +353,253 @@ OCUDU = OAI
 
 ---
 
-## Verification
+# Verification & References
 
-Figure 01 的內容不只使用架構概念整理，而是需要分別從 **3GPP specification** 與 **open-source implementation** 兩個層次核實。
+Figure 01-A 與 Figure 01-B 屬於 **System Block Diagram**。
 
----
-
-### 1. 3GPP Specification
-
-目前 Figure 01 主要對照：
-
-| Specification | 用途 |
-|---|---|
-| **3GPP TS 38.401** | NG-RAN Architecture Description |
-| **3GPP TS 38.470** | F1 General Aspects and Principles |
-
-其中：
-
-**TS 38.401** 主要用來確認：
-
-- NG-RAN architecture
-- gNB
-- gNB-CU
-- gNB-DU
-- NG / F1 interface relationship
-
-**TS 38.470** 則用來進一步確認：
-
-- F1 interface general architecture
-- gNB-CU / gNB-DU relationship
-- F1 general principles
-
-因此 Figure 01 的 architecture 不是單純依照圖片或二手資料整理，而是以 3GPP architecture specification 作為主要核實依據。
-
----
-
-### 2. OCUDU / OAI Implementation
-
-Figure 01-B 目前只建立：
+因此 Figure 01 的 verification 主要分成：
 
 ```text
+3GPP Specification
+        ↓
 Functional Architecture
         ↓
-Software Implementation
-```
-
-的研究關係。
-
-這張圖本身不宣稱：
-
-```text
-OCUDU software architecture
-        =
-OAI software architecture
-```
-
-後續需要分別透過：
-
-- OCUDU official documentation / source code
-- OAI official documentation / source code
-
-確認兩者如何實作對應的 5G RAN functions。
-
----
-
-### 3. Source Code Verification
-
-後續進行 implementation comparison 時，預計使用：
-
-```text
-3GPP Functional Architecture
-            ↓
-       Interface
-            ↓
-        Protocol
-            ↓
-     Specification
-            ↓
-    ┌───────┴────────┐
-    ↓                ↓
- OCUDU              OAI
-    ↓                ↓
-Source Code       Source Code
-    ↓                ↓
-Software Module   Software Module
-    ↓                ↓
+Open-source Documentation
+        ↓
+Source Code
+        ↓
 Implementation Comparison
 ```
 
-也就是不只比較 architecture diagram，而是繼續往實際 implementation 深入。
-
 ---
 
-## Version Information
+## 1. 3GPP TS 38.401 — NG-RAN Architecture Description
 
-### 3GPP
+- [3GPP TS 38.401 — NG-RAN Architecture Description](https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=3219)
+- **Release：** Release 19
+- **Reference Version：** TS 38.401 V19.3.0
+- **Checked Date：** 2026/09/02
 
-目前使用的 specification：
+### 對應 Figure 01 的內容
 
-- **TS 38.401 — NG-RAN Architecture Description**
-- **TS 38.470 — F1 General Aspects and Principles**
+TS 38.401 主要用於核實 Figure 01-A / Figure 01-B 中的 NG-RAN functional architecture，包括：
 
-後續正式閱讀與引用時，需要另外記錄實際使用的：
+- gNB-CU 與 gNB-DU 的 functional architecture
+- gNB-CU-CP 與 gNB-CU-UP 的 separation
+- CU-CP ↔ CU-UP 的 E1 interface
+- CU-CP ↔ DU 的 F1-C interface
+- CU-UP ↔ DU 的 F1-U interface
+- NG-RAN 與 5G Core 之間的 architecture relationship
+
+因此 Figure 01 中：
 
 ```text
-3GPP Release
-Specification Version
-Checked Date
+             CU-CP
+               │
+              E1
+               │
+             CU-UP
+              / \
+          F1-C   F1-U
+            \     /
+               DU
 ```
 
-避免只記錄 TS 編號而沒有版本資訊。
+主要是依照 TS 38.401 所定義的 NG-RAN functional architecture 進行整理。
+
+> **Verification Note：**
+> Reference Version 代表本次用於 Figure 01 verification 的規格版本。
+> 若後續改用其他版本重新核實，需同步更新 Version Information 與 Update History。
 
 ---
 
-### OpenAirInterface
+## 2. 3GPP TS 38.470 — F1 General Aspects and Principles
 
-目前 source code study 使用：
+- [3GPP TS 38.470 — F1 General Aspects and Principles](https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=3257)
+- **Release：** Release 19
+- **Reference Version：** TS 38.470 V19.2.0
+- **Checked Date：** 2026/09/02
 
+### 對應 Figure 01 的內容
+
+TS 38.470 主要用於進一步核實：
+
+- F1 interface 位於 gNB-CU 與 gNB-DU 之間
+- F1 interface 的 general architecture
+- F1 Control Plane 與 User Plane 的基本概念
+
+Figure 01 目前只使用：
+
+```text
+CU-CP ── F1-C ── DU
+CU-UP ── F1-U ── DU
+```
+
+表示 system-level interface relationship。
+
+Figure 01 並沒有使用 TS 38.470 來證明 OCUDU 與 OAI 的 software implementation 相同。
+
+F1-C / F1-U 上實際執行的 protocol stack、F1AP procedure 與 OAI source code implementation，另外於 Figure 07 進行分析。
+
+---
+
+## 3. OpenAirInterface — Official Source Code
+
+- [OpenAirInterface5G — Official GitLab Repository](https://gitlab.eurecom.fr/oai/openairinterface5g)
 - **Repository：** `openairinterface5g`
 - **Branch：** `develop`
 - **Commit SHA：** `待實際 checkout / source trace 後填入`
-- **Checked Date：** `待實際確認`
+- **Checked Date：** `待實際 source trace 後填入`
 
-由於 `develop` branch 會持續更新，因此後續進行 source code mapping 時，需要使用實際 commit SHA 固定研究版本。
+### 對應 Figure 01-B 的內容
+
+OAI official source code 主要用來進一步確認：
+
+```text
+3GPP Functional Architecture
+        ↓
+OAI Software Architecture
+        ↓
+Software Module
+        ↓
+Source Code
+```
+
+也就是確認 OAI 如何將 5G RAN specification 中的 functional concept 實作成實際 software modules。
+
+由於 `develop` branch 會持續更新，因此後續進行 source code trace 時，需要記錄實際使用的：
+
+```text
+Branch
+Commit SHA
+File
+Function
+Checked Date
+```
+
+避免只標示 `develop` 而無法重現當時的 source code 狀態。
 
 ---
 
-### OCUDU
+## 4. OCUDU — Official Source Code
 
-目前 Figure 01-B 只將 OCUDU 放在 implementation level 進行概念定位。
+- [OCUDU — GitHub Repository](https://github.com/ocudu/ocudu)
+- **Branch / Tag：** `待實際確認`
+- **Commit SHA：** `待實際 source trace 後填入`
+- **Checked Date：** `待實際 source trace 後填入`
 
-後續開始閱讀 OCUDU source code 時，需要另外記錄：
+### 對應 Figure 01-B 的內容
 
-- Repository
-- Branch / Tag
-- Commit SHA
-- Checked Date
+OCUDU source code 主要用來進一步確認：
 
-再進一步與 OAI implementation 比較。
+```text
+3GPP Functional Architecture
+        ↓
+OCUDU Software Architecture
+        ↓
+Software Module
+        ↓
+Source Code
+```
+
+Figure 01-B 將 OCUDU 與 OAI 放在共同 functional architecture 下方，主要是建立後續比較的研究架構。
+
+這並不代表兩者的 software architecture 完全相同。
+
+後續需要分別從兩者的：
+
+- Source code structure
+- Protocol implementation
+- Module design
+- Interface implementation
+- Deployment architecture
+
+進行比較。
 
 ---
 
-## Conclusion
+# Verification Result
 
-經過 Figure 01-A 與 Figure 01-B 的整理，目前可以得到以下結論：
+經過 architecture-level specification cross-check，Figure 01 目前可以得到以下結果：
 
-### 1. System Architecture 與 Protocol Architecture 必須分開
+1. gNB architecture 可以使用 CU / DU functional split 進行理解。
+2. gNB-CU 可以進一步區分 gNB-CU-CP 與 gNB-CU-UP。
+3. CU-CP 與 CU-UP 之間存在 E1 interface。
+4. CU-CP 與 DU 之間使用 F1-C。
+5. CU-UP 與 DU 之間使用 F1-U。
+6. Figure 01 的定位為 system-level functional architecture。
+7. 共同的 functional architecture 不代表 OCUDU 與 OAI 具有完全相同的 software implementation。
 
-Figure 01 的主要目的是建立：
+因此目前的研究關係整理為：
+
+```text
+          3GPP Specification
+                 ↓
+      NG-RAN Functional Architecture
+                 ↓
+          Interface / Protocol
+                 ↓
+        ┌────────┴────────┐
+        ↓                 ↓
+      OCUDU              OAI
+        ↓                 ↓
+   Source Code        Source Code
+        ↓                 ↓
+  Implementation     Implementation
+        └────────┬────────┘
+                 ↓
+       Implementation Comparison
+```
+
+---
+
+# Figure 01 的佐證範圍
+
+目前 Figure 01 不應該把所有內容都宣稱由 TS 38.401 / TS 38.470 直接佐證。
+
+需要區分：
+
+| Figure 01 內容 | 主要佐證來源 |
+|---|---|
+| gNB-CU / gNB-DU architecture | 3GPP TS 38.401 |
+| CU-CP / CU-UP separation | 3GPP TS 38.401 |
+| E1 interface | 3GPP TS 38.401 |
+| F1-C / F1-U relationship | 3GPP TS 38.401、TS 38.470 |
+| OCUDU implementation | OCUDU official documentation / source code |
+| OAI implementation | OAI official documentation / source code |
+| OCUDU 與 OAI implementation difference | 後續 source code comparison |
+| DU / RU PHY functional split | 需要額外的 fronthaul / PHY split specification 佐證 |
+
+特別是 Figure 01 中若進一步將：
+
+```text
+DU = High-PHY
+RU = Low-PHY / RF
+```
+
+視為特定 PHY split architecture，則不能只使用 TS 38.401 與 TS 38.470 進行完整佐證。
+
+這部分需要另外確認所採用的 fronthaul / PHY split architecture，例如 O-RAN Open Fronthaul 相關 specification。
+
+因此 Figure 01 目前主要將這一段理解為：
+
+```text
+DU
+ ↓
+Radio / Fronthaul
+ ↓
+RU
+```
+
+而不將所有 implementation 視為完全相同。
+
+---
+
+# Conclusion
+
+## 1. System Architecture 與 Protocol Architecture 必須分開
+
+Figure 01 的主要研究層級為：
 
 ```text
 Component
@@ -447,41 +609,52 @@ Functional Split
 Interface Relationship
 ```
 
-因此 Figure 01 被定位為 **System Block Diagram**。
+因此 Figure 01 被定位為：
+
+> **System Block Diagram**
 
 它不負責完整表示 F1AP、SCTP、GTP-U 等 protocol stack。
 
 ---
 
-### 2. Functional Architecture 與 Software Implementation 是不同層次
+## 2. Functional Architecture 與 Software Implementation 是不同層次
 
-5G RAN functional architecture 可以提供：
+3GPP functional architecture 可以提供：
 
 ```text
 CU-CP
 CU-UP
 DU
-Interface
-Functional Split
+E1
+F1-C
+F1-U
 ```
 
 等共同的研究 reference。
 
-但是實際 software 如何組織這些功能，需要從 implementation 端另外確認。
+但是實際 software 如何組織並完成這些功能，需要再從 implementation 端進行確認。
 
 ---
 
-### 3. OCUDU 與 OAI 可以使用共同架構作為比較起點
+## 3. OCUDU 與 OAI 可以使用共同架構作為比較起點
 
 目前將兩者的關係整理為：
 
 > **Common functional architecture, different implementations.**
 
-這表示兩者可以從共同的 5G RAN functional concept 開始研究，但不能因此直接認定兩者具有完全相同的 software architecture 或 source code organization。
+這表示 OCUDU 與 OAI 可以從共同的 5G RAN functional architecture 開始研究與比較。
+
+但不能因此直接認定：
+
+```text
+OCUDU Software Architecture
+            =
+OAI Software Architecture
+```
 
 ---
 
-### 4. 真正比較 OCUDU 與 OAI 需要進入 Source Code
+## 4. 真正比較 OCUDU 與 OAI 需要進入 Source Code
 
 只比較：
 
@@ -491,44 +664,48 @@ CU-UP
 DU
 ```
 
-的方塊圖不足以判斷兩個 implementation 是否相同。
+的方塊圖不足以判斷兩個 implementation 的差異。
 
-後續還需要比較：
+因此後續研究需要繼續：
 
 ```text
+Architecture
+     ↓
 Interface
-    ↓
+     ↓
 Protocol
-    ↓
+     ↓
 Specification
-    ↓
+     ↓
 Software Module
-    ↓
+     ↓
 Source Code
-    ↓
+     ↓
 Runtime Behavior
 ```
 
-才能更具體理解 OCUDU 與 OAI 的 implementation difference。
+才能更具體理解 OCUDU 與 OAI 各自如何完成 specification 所定義的功能。
 
 ---
 
-### 5. Figure 01 與 Figure 07 的研究層級不同
+## 5. Figure 01 與 Figure 07 的研究層級不同
 
-目前兩組圖的分工為：
+Figure 01：
 
 ```text
-Figure 01
 System Block Diagram
         ↓
 What components are involved?
         ↓
-How are OCUDU / OAI related
-to the functional architecture?
+What interfaces connect them?
+        ↓
+How do OCUDU / OAI relate
+to this functional architecture?
+```
 
-              ↓
+Figure 07：
 
-Figure 07
+```text
 Protocol Architecture
         ↓
 What protocols run on F1?
@@ -536,13 +713,18 @@ What protocols run on F1?
 Which specification defines them?
         ↓
 How does OAI implement them?
+        ↓
+Which source files / functions
+perform these operations?
 ```
 
-因此 Figure 01 先建立共同的 **system-level reference**，Figure 07 再往 **Protocol → Specification → Source Code** 深入。
+因此：
+
+> **Figure 01 建立 system-level reference，Figure 07 再進一步從 Protocol → Specification → Source Code 進行分析。**
 
 ---
 
-## Figure 01 學習紀錄
+# Figure 01 學習紀錄
 
 - **初次整理日期：** 2026/08/25
 - **Figure 01-B 新增日期：** 2026/09/02
@@ -550,32 +732,42 @@ How does OAI implement them?
 - **主要閱讀內容：**
   - 5G RAN Functional Architecture
   - CU-CP / CU-UP / DU
+  - E1 Interface
   - F1 Interface
   - OCUDU / OAI implementation relationship
-- **修正重點：**
-  - 保留原本 Figure 01-A 的 functional component 說明
-  - 新增 Figure 01-B，建立 5G RAN functional architecture 與 OCUDU / OAI implementation 的關係
-  - 明確區分 System Block Diagram 與 Protocol Architecture Diagram
-  - 加入 specification / source code verification 方法
-  - 加入版本紀錄方式
-  - 將「學到的內容」進一步整理成明確的研究結論
+- **Specification Reference：**
+  - 3GPP TS 38.401 V19.3.0
+  - 3GPP TS 38.470 V19.2.0
+- **Source Code Reference：**
+  - OAI `openairinterface5g`
+  - OCUDU
+- **本次修正重點：**
+  - 保留 Figure 01-A 的 functional component 說明
+  - 新增 Figure 01-B
+  - 建立 5G RAN functional architecture 與 OCUDU / OAI implementation 的關係
+  - 區分 System Block Diagram 與 Protocol Architecture Diagram
+  - 加入 3GPP specification verification
+  - 加入 official source code URL
+  - 加入 version information
+  - 明確標示目前可以證明與尚待 source code verification 的內容
 
 ---
 
-## Update History
+# Update History
 
 | Date | Version | Update |
 |---|---|---|
 | 2026/08/25 | v0.1 | 建立原始 CU-CP / CU-UP / DU / RU architecture figure |
 | 2026/09/02 | v0.2 | 將 Figure 01 明確定位為 System Block Diagram |
-| 2026/09/02 | v0.3 | 新增 Figure 01-B，整理 5G RAN functional architecture 與 OCUDU / OAI implementation mapping |
-| 2026/09/02 | v0.3 | 加入 3GPP verification、version information 與 research conclusion |
+| 2026/09/02 | v0.3 | 新增 Figure 01-B，整理 common functional architecture 與 OCUDU / OAI implementation mapping |
+| 2026/09/02 | v0.4 | 加入 TS 38.401 / TS 38.470 specification verification |
+| 2026/09/02 | v0.5 | 加入 OAI / OCUDU source code references、verification scope 與 research conclusion |
 
 ---
 
-## Next Step
+# Next Step
 
-Figure 01 完成 system-level architecture 整理後，下一階段不再繼續增加相似的 system block diagram，而是往：
+Figure 01 完成 system-level architecture 整理後，下一階段不再只增加相似的 system block diagram，而是往：
 
 ```text
 System Architecture
@@ -604,13 +796,12 @@ Protocol Stack
    ↓
 F1AP Procedure
    ↓
-3GPP TS 38.470～38.474
+3GPP Specification
    ↓
 OAI Source Code
 ```
 
 後續再透過實際 OAI installation、runtime log 與 message trace，驗證目前從 specification 與 source code 得到的理解。
-
 ---
 
 ## Figure 2. Control Plane 與 User Plane 路徑
