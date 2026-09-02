@@ -30,23 +30,27 @@
 ## 學習紀錄
 
 - **初次學習日期：** 2026/08/24
-- **初次投入時間：** 約 2.5 小時
+- **初次投入時間：** 約 3.5 小時
 - **本次核實日期：** 2026/09/02
 - **OAI Repository：** `openairinterface5g`
-- **OAI Branch：** `develop`
-- **OAI Commit SHA：** `待實際 checkout / source trace 後填入`
+- **OAI Target Branch：** `develop`
+- **OAI Commit SHA：** `Pending — 尚未進行本機 checkout`
+- **Source Trace Date：** `Pending — OAI 環境建置完成後進行`
 - **主要閱讀內容：**
-  - OpenAirInterface5G official source code
-  - OAI Aerial FAPI Split related documentation
-  - NVIDIA Aerial L1 Software Architecture
-  - NVIDIA L2 Adapter / cuPHY Driver documentation
+  - NVIDIA Aerial official documentation
   - Small Cell Forum FAPI documentation
+  - OpenAirInterface5G official repository / documentation
 - **本次重點：**
   - 區分 FAPI 與 nvIPC
   - 確認 OAI MAC 與 Aerial L1 的 integration boundary
   - 確認 L2 Adapter、cuPHY Driver、cuPHY 與 cuPHY Controller 的角色
   - 確認 Aerial L1 與 O-RU 之間的 fronthaul relationship
   - 建立後續 source code trace 與 runtime verification 的方向
+
+> **研究進度說明：**  
+> 目前已完成 OAI + NVIDIA Aerial L1 的 architecture-level 與 official-documentation-level verification。  
+> OAI source code 的 function-level trace 尚未開始；待 Ubuntu / OAI 環境建置完成後，將固定實際使用的 commit SHA，並記錄 source file、function 與對應 FAPI message。
+
 
 ---
 
