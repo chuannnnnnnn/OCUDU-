@@ -180,7 +180,7 @@ OAI Source Code
 
 ## Figure 01-B. 5G RAN Functional Architecture 與 OCUDU / OAI Implementation Mapping
 
-![Figure 01-B. 5G RAN Functional Architecture 與 OCUDU / OAI Implementation Mapping](images/01_5G_RAN_Functional_Architecture_OCUDU_OAI.PNG)
+![Figure 01-B. 5G RAN Functional Architecture 與 OCUDU / OAI Implementation Mapping](images/01_5G_RAN_Functional_Architecture_OCUDU_OAI.png)
 
 ### 圖片定位
 
